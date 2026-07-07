@@ -52,8 +52,11 @@ export class ClientConfigGenerator {
         }
       }),
       renderConfig: (port: number, serverName = "zotero-mcp", psk?: string) => {
-        const safeServerName = ClientConfigGenerator.escapeTomlBasicString(serverName);
-        return `[mcp_servers."${safeServerName}"]
+        // TOML bare key allows A-Za-z0-9_- , only quote when needed
+        const key = /^[A-Za-z0-9_-]+$/.test(serverName)
+          ? serverName
+          : `"${ClientConfigGenerator.escapeTomlBasicString(serverName)}"`;
+        return `[mcp_servers.${key}]
 enabled = true
 url = "http://127.0.0.1:${port}/mcp"
 http_headers = { Authorization = "Bearer ${psk || PSK_PLACEHOLDER}", "Content-Type" = "application/json" }`;

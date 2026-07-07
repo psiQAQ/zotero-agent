@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-07-07
+
+### Fixed
+- TOML config: remove unnecessary quotes around bare key in `[mcp_servers]` section (Codex CLI)
+- `/mcp/status` endpoint: repository and documentation URLs now point to this repo
+- selfTest error log filter: updated regex to match new addon ref
+- Vector database filename: `zotero-agent-vectors.sqlite`
+
 ## [2.0.1] - 2026-07-07
 
 ### Changed

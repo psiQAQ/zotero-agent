@@ -98,7 +98,7 @@ export async function runSelfTest(name: string): Promise<SuiteResult> {
   const newErrorsInLog = logAvailable
     ? newLines
         .split("\n")
-        .filter((l) => /\berror\b/i.test(l) && /zotero-mcp|StreamableMCP|HttpServer/i.test(l))
+        .filter((l) => /\berror\b/i.test(l) && /zotero-agent|StreamableMCP|HttpServer/i.test(l))
         .slice(0, 50)
     : [];
   return {

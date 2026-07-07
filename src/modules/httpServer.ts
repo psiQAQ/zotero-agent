@@ -807,8 +807,8 @@ private async getCapabilities() {
       version: "1.1.0",
       description: "Model Context Protocol integration for Zotero research management",
       author: "Zotero Agent Team",
-      repository: "https://github.com/zotero/zotero-mcp",
-      documentation: "https://github.com/zotero/zotero-mcp/blob/main/README.md"
+      repository: "https://github.com/psiQAQ/zotero-agent",
+      documentation: "https://github.com/psiQAQ/zotero-agent#readme"
     },
     protocols: {
       mcp: {

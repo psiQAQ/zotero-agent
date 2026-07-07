@@ -96,7 +96,7 @@ export class VectorStore {
     try {
       // Get Zotero data directory
       const dataDir = Zotero.DataDirectory.dir;
-      this.dbPath = PathUtils.join(dataDir, 'zotero-mcp-vectors.sqlite');
+      this.dbPath = PathUtils.join(dataDir, 'zotero-agent-vectors.sqlite');
 
       ztoolkit.log(`[VectorStore] Initializing database: instanceId=${this.instanceId}, dbPath=${this.dbPath}`);
 
