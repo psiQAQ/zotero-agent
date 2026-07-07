@@ -21,7 +21,7 @@ const repoUrl = "https://github.com/psiQAQ/zotero-agent";
 
 function generateUpdateJson(isBeta = false) {
   const currentVersion = isBeta ? `${version}-beta.0` : version;
-  const updateLink = `${repoUrl}/releases/download/v${currentVersion}/zotero-mcp-plugin-${currentVersion}.xpi`;
+  const updateLink = `${repoUrl}/releases/download/v${currentVersion}/zotero-agent-${currentVersion}.xpi`;
 
   return {
     addons: {

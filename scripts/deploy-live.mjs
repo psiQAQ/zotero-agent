@@ -10,9 +10,9 @@ import { resolve } from "node:path";
 
 const XPI = process.argv[2]
   ? resolve(process.argv[2])
-  : fileURLToPath(new URL("../.scaffold/build/zotero-mcp-plugin.xpi", import.meta.url));
+  : fileURLToPath(new URL("../.scaffold/build/zotero-agent.xpi", import.meta.url));
 if (!existsSync(XPI)) throw new Error(`XPI not found: ${XPI}`);
-const REMOTE_PATH = "/tmp/zotero-mcp-plugin-deploy.xpi";
+const REMOTE_PATH = "/tmp/zotero-agent-deploy.xpi";
 
 const claudeJson = `${process.env.USERPROFILE || process.env.HOME}/.claude.json`;
 const cfg = JSON.parse(readFileSync(claudeJson, "utf8"));

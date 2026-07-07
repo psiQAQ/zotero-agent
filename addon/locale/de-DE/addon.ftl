@@ -1,10 +1,10 @@
 startup-begin = Addon wird geladen
 startup-finish = Addon ist bereit
-menuitem-label = Zotero MCP Plugin: Hilfsbeispiele
-menupopup-label = Zotero MCP Plugin: Menüpopup
-menuitem-submenulabel = Zotero MCP Plugin
-menuitem-filemenulabel = Zotero MCP Plugin: Datei-Menüeintrag
-prefs-title = Zotero MCP Plugin
+menuitem-label = Zotero Agent: Hilfsbeispiele
+menupopup-label = Zotero Agent: Menüpopup
+menuitem-submenulabel = Zotero Agent
+menuitem-filemenulabel = Zotero Agent: Datei-Menüeintrag
+prefs-title = Zotero Agent
 prefs-table-title = Titel
 prefs-table-detail = Details
 tabpanel-lib-tab-label = Bibliothek-Tab

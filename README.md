@@ -12,9 +12,9 @@ In practice, an AI assistant (Claude, Codex, …) talking to this server can sea
 
 ### Step 1: Install the Zotero Plugin
 
-1. Download the latest `zotero-mcp-plugin.xpi` from the [Releases Page](https://github.com/psiQAQ/zotero-agent/releases/).
+1. Download the latest `zotero-agent.xpi` from the [Releases Page](https://github.com/psiQAQ/zotero-agent/releases/).
 2. Install it in Zotero through `Tools -> [gear icon] -> Install Plugin From File...`.
-3. Open `Editor -> Settings -> Zotero MCP Plugin` and enable these permissions:
+3. Open `Editor -> Settings -> Zotero Agent` and enable these permissions:
    1. Allow Remote Access
    2. Enable Write Operations
    3. Run JavaScript (eval)
@@ -23,7 +23,7 @@ In practice, an AI assistant (Claude, Codex, …) talking to this server can sea
 
 ### Step 2: Configure Your AI Client
 
-Get your token from `Zotero -> Editor -> Settings -> Zotero MCP Plugin -> PSK`.
+Get your token from `Zotero -> Editor -> Settings -> Zotero Agent -> PSK`.
 
 #### Codex App
 
@@ -63,7 +63,7 @@ claude mcp add --transport http zotero-mcp http://127.0.0.1:23120/mcp `
 
 ### Step 3 (Optional): Recommended Companion Plugins
 
-These plugins run **alongside** Zotero MCP — they're not bundled in, but once installed, the AI agent can drive them through the `run_javascript` tool (Zotero's privileged context can reach any installed plugin's API). Install the ones that match your workflow:
+These plugins run **alongside** Zotero Agent — they're not bundled in, but once installed, the AI agent can drive them through the `run_javascript` tool (Zotero's privileged context can reach any installed plugin's API). Install the ones that match your workflow:
 
 | Plugin | What it does | How it pairs with this plugin / the agent |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ Some plugins may need a Zotero restart to fully activate. Note: most of these ar
 
 On top of Zotero's built-in open-access resolvers, the plugin can use Sci-Hub / Anna's Archive as fallback PDF download sources.
 
-**Enable in the preferences panel.** In `Editor -> Settings -> Zotero MCP Plugin`, turn on the Sci-Hub / Anna's Archive toggle. A source list appears pre-filled with sensible defaults (several Sci-Hub mirrors + Anna's Archive); you can add or remove sources, or restore the defaults. Sources register as **manual-only** resolvers — used only when you explicitly trigger a download, never in the background. Everything stays off by default.
+**Enable in the preferences panel.** In `Editor -> Settings -> Zotero Agent`, turn on the Sci-Hub / Anna's Archive toggle. A source list appears pre-filled with sensible defaults (several Sci-Hub mirrors + Anna's Archive); you can add or remove sources, or restore the defaults. Sources register as **manual-only** resolvers — used only when you explicitly trigger a download, never in the background. Everything stays off by default.
 
 **Download.** Once enabled, Zotero's native right-click **Find Available PDF** automatically includes these sources: Zotero tries free sources first (arXiv / open access) and falls back to the grey sources only when needed. You can also drive it through the MCP tools `manage_pdf_resolvers` (enable/disable and manage the source list) and `find_missing_pdfs` (audit which items lack a PDF, then fetch).
 
@@ -117,7 +117,7 @@ Load the plugin in Zotero:
 npm run start
 
 # Or install the built .xpi file manually
-# The xpi file will be generated at "./.scaffold/build/zotero-mcp-plugin.xpi"
+# The xpi file will be generated at "./.scaffold/build/zotero-agent.xpi"
 npm run build
 ```
 

@@ -194,7 +194,7 @@ export class VectorStore {
 
       // Notify user
       try {
-        new ztoolkit.ProgressWindow("Zotero MCP Plugin", { closeOtherProgressWindows: false })
+        new ztoolkit.ProgressWindow("Zotero Agent", { closeOtherProgressWindows: false })
           .createLine({
             text: "检测到索引数据库损坏，已自动重建。旧文件已备份。\nCorrupted index database detected and rebuilt. Old file backed up.",
             type: "default",
@@ -229,7 +229,7 @@ export class VectorStore {
         ztoolkit.log('[VectorStore] Fresh database created after severe corruption');
 
         try {
-          new ztoolkit.ProgressWindow("Zotero MCP Plugin", { closeOtherProgressWindows: false })
+          new ztoolkit.ProgressWindow("Zotero Agent", { closeOtherProgressWindows: false })
             .createLine({
               text: "检测到索引数据库严重损坏，已自动重建。旧文件已备份。\nSeverely corrupted index database detected and rebuilt. Old file backed up.",
               type: "default",
@@ -379,7 +379,7 @@ export class VectorStore {
 
     // Show progress notification
     try {
-      new ztoolkit.ProgressWindow("Zotero MCP Plugin", { closeOtherProgressWindows: false })
+      new ztoolkit.ProgressWindow("Zotero Agent", { closeOtherProgressWindows: false })
         .createLine({
           text: `正在优化向量数据库结构，共 ${remaining} 条记录...\nOptimizing vector database structure, ${remaining} records...`,
           type: "default",

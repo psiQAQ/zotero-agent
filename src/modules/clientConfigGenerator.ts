@@ -296,7 +296,7 @@ http_headers = { Authorization = "Bearer ${psk || PSK_PLACEHOLDER}", "Content-Ty
       description: "通用 HTTP MCP 客户端配置",
       configTemplate: (port: number, serverName = "zotero-mcp", psk?: string) => ({
         name: serverName,
-        description: "Zotero MCP Server - Research management and citation tools",
+        description: "Zotero Agent Server - Research management and citation tools",
         transport: {
           type: "http",
           endpoint: `http://127.0.0.1:${port}/mcp`,

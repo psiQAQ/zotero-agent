@@ -1,5 +1,5 @@
 /**
- * Fulltext Service for Zotero MCP Plugin
+ * Fulltext Service for Zotero Agent
  * Handles extraction and retrieval of full-text content from various sources
  */
 

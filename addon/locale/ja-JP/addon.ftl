@@ -1,10 +1,10 @@
 startup-begin = アドオンを読み込んでいます
 startup-finish = アドオンの準備が完了しました
-menuitem-label = Zotero MCP Plugin: ヘルパーサンプル
-menupopup-label = Zotero MCP Plugin: メニューポップアップ
-menuitem-submenulabel = Zotero MCP Plugin
-menuitem-filemenulabel = Zotero MCP Plugin: ファイルメニュー項目
-prefs-title = Zotero MCP Plugin
+menuitem-label = Zotero Agent: ヘルパーサンプル
+menupopup-label = Zotero Agent: メニューポップアップ
+menuitem-submenulabel = Zotero Agent
+menuitem-filemenulabel = Zotero Agent: ファイルメニュー項目
+prefs-title = Zotero Agent
 prefs-table-title = タイトル
 prefs-table-detail = 詳細
 tabpanel-lib-tab-label = ライブラリタブ

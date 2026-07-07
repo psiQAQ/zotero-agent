@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-本仓库 = **Zotero MCP 插件（`zotero-agent`）**：从 `cookjohn/zotero-mcp` fork 二次开发后**独立**的发布仓库，插件目录即仓库根。完整变更史见 `CHANGELOG.md`（从上游 v1.5.0 起）。本文件是给未来会话的开发 / 发布上下文。
+本仓库 = **Zotero Agent（`zotero-agent`）**：从 `cookjohn/zotero-mcp` fork 二次开发后**独立**的发布仓库，插件目录即仓库根。完整变更史见 `CHANGELOG.md`（从上游 v1.5.0 起）。本文件是给未来会话的开发 / 发布上下文。
 
 ---
 
@@ -22,10 +22,10 @@
 
 ## 3. 开发循环（build + 部署）
 
-改代码 → `npm run build`（`zotero-plugin build` + `tsc --noEmit`，产物 `.scaffold/build/zotero-mcp-plugin.xpi`）→ `node scripts/deploy-live.mjs`（xpi base64 经 `run_javascript` 写入 Zotero 端 `/tmp` + 自升级，~5s 断连后即新版）。
+改代码 → `npm run build`（`zotero-plugin build` + `tsc --noEmit`，产物 `.scaffold/build/zotero-agent.xpi`）→ `node scripts/deploy-live.mjs`（xpi base64 经 `run_javascript` 写入 Zotero 端 `/tmp` + 自升级，~5s 断连后即新版）。
 
 - `deploy-live.mjs` 也能装任意 xpi：`node scripts/deploy-live.mjs 路径/xxx.xpi`（如使用者下载的 xpi）。它依赖 zotero MCP 通道（PSK），是"已装本插件后换版 / 升级"的工具；**首次裸装**仍需手动把 xpi 拖进 Zotero
-- 回归：`run_javascript` 里 `return await Zotero.ZoteroMCPSelfTest.run('protocol')`（约 26 场景全栈 selfTest）
+- 回归：`run_javascript` 里 `return await Zotero.ZoteroAgentSelfTest.run('protocol')`（约 26 场景全栈 selfTest）
 - 本地单测：`npm run test:unit`
 
 ## 4. 发布流程（版本控制 + 云端 CI + update.json）
@@ -42,7 +42,7 @@
 
 **发布 = 推 tag。** `npm run release` 内含 `git push --follow-tags` 把 `v<version>` tag 推上去。**GitHub 只在 tag 匹配 `v数字.数字.数字` 时触发** `.github/workflows/release.yml`——普通 push commit 不触发，所以发版必须打 tag（用 `npm version`，别手动改版本号）。
 
-**Actions 在云端 build，不是本地。** `runs-on: ubuntu-latest` = GitHub 托管的 Ubuntu 虚拟机：checkout → `npm ci` → `npm run build` → `npm run prepare-release`（生成 update.json）→ 创建 GitHub Release，把 `zotero-mcp-plugin-<version>.xpi` + `update.json` 作为附件上传。你本地只做 `npm version` + push，build 全在云端。（对比 §3 的 `deploy-live` 是**本地** build，用于开发调试快速部署；CI 云端 build 用于对外分发，两条线独立。）
+**Actions 在云端 build，不是本地。** `runs-on: ubuntu-latest` = GitHub 托管的 Ubuntu 虚拟机：checkout → `npm ci` → `npm run build` → `npm run prepare-release`（生成 update.json）→ 创建 GitHub Release，把 `zotero-agent-<version>.xpi` + `update.json` 作为附件上传。你本地只做 `npm version` + push，build 全在云端。（对比 §3 的 `deploy-live` 是**本地** build，用于开发调试快速部署；CI 云端 build 用于对外分发，两条线独立。）
 
 **update.json 是什么：**
 - **来源**：`scripts/prepare-release.js` 在 CI 里**生成**，不手写、不提交（已 gitignore）
@@ -91,7 +91,7 @@ for (const id of await Zotero.Items.getAllIDs(libID)) {
 - 中文 tag / body 的 mojibake（-32700）**已修**（读取层字节收集 + 单次解码）
 - `/mcp/status` 的 version 字段是历史硬编码，查真实版本用 `AddonManager`
 
-## 7. MCP 工具与安全（当前 v1.8.2，42 工具）
+## 7. MCP 工具与安全（当前 v2.0.0，42 工具）
 
 - 端口 **23120**，只绑 `127.0.0.1`；POST /mcp 校验 `Authorization: Bearer <PSK>`，并校验 Origin（DNS 重绑定防御）
 - **多层防御**：只绑 loopback → PSK → `eval.enabled` 默认**关** → `write.enabled` 默认**关**
@@ -103,7 +103,7 @@ for (const id of await Zotero.Items.getAllIDs(libID)) {
 
 - 启动本地 Zotero（已装本插件），AI 客户端本地直连 `http://127.0.0.1:23120/mcp`（Bearer PSK，从插件偏好页复制）
 - 验证官方读通路：`curl -sD - http://127.0.0.1:23119/api/users/<library-id>/items?limit=1` → 200
-- 改代码 → `npm run build` → `node scripts/deploy-live.mjs` → selfTest 回归（`Zotero.ZoteroMCPSelfTest.run('protocol')`）
+- 改代码 → `npm run build` → `node scripts/deploy-live.mjs` → selfTest 回归（`Zotero.ZoteroAgentSelfTest.run('protocol')`）
 - 发版 → `npm run release`（patch）或 `npm version minor|major && git push --follow-tags` → 云端 CI 自动 build + 发 Release + 传 update.json
 - 破坏性操作（`eraseTx` 无回收站）前先备份 / dry-run，写后回读校验
 - 参考仓库按需拉：`git submodule update --init refs/<path>`

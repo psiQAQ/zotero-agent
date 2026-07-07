@@ -1,5 +1,5 @@
 /**
- * MCP Settings Service for Zotero MCP Plugin
+ * MCP Settings Service for Zotero Agent
  * Manages user preferences for AI client compatibility and content processing
  */
 
@@ -7,7 +7,7 @@ declare let Zotero: any;
 declare let ztoolkit: ZToolkit;
 
 export class MCPSettingsService {
-  private static readonly PREF_PREFIX = 'extensions.zotero.zotero-mcp-plugin.';
+  private static readonly PREF_PREFIX = 'extensions.zotero.zotero-agent.';
   
   // Unified content processing modes - single, intuitive system
   private static readonly UNIFIED_MODES = {

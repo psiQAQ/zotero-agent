@@ -46,7 +46,7 @@ pref-include-metadata-text = 包含元数据
 pref-include-metadata-sub = 返回标题、作者、DOI 等字段
 
 pref-client-config-title = 客户端配置
-pref-client-config-description = 为主流 AI 客户端生成 MCP 服务器配置文件，方便快速连接到 Zotero MCP 服务器。
+pref-client-config-description = 为主流 AI 客户端生成 MCP 服务器配置文件，方便快速连接到 Zotero Agent 服务器。
 pref-section-client-desc = 选择你的 AI 客户端，一键生成连接配置
 pref-client-type-label = 客户端
 pref-server-name-label = 服务名称
@@ -216,8 +216,8 @@ pref-detail-stats-title = 详细统计与 API 用量
 pref-detail-index-section = 索引详情
 pref-detail-api-section = API 累计
 
-first-install-title = 欢迎使用 Zotero MCP 插件
-first-install-prompt = 感谢安装 Zotero MCP 插件！为了开始使用，您需要为您的 AI 客户端生成配置文件。是否现在打开设置页面来生成配置？
+first-install-title = 欢迎使用 Zotero Agent
+first-install-prompt = 感谢安装 Zotero Agent！为了开始使用，您需要为您的 AI 客户端生成配置文件。是否现在打开设置页面来生成配置？
 first-install-open-prefs = 打开设置
 first-install-later = 稍后配置
 

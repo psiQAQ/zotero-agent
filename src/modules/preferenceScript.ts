@@ -14,8 +14,8 @@ export async function registerPrefsScripts(_window: Window) {
   
   // 诊断当前偏好设置状态
   try {
-    const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.enabled", true);
-    const currentPort = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.port", true);
+    const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.enabled", true);
+    const currentPort = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.port", true);
     ztoolkit.log(`[PreferenceScript] [DIAGNOSTIC] Current preferences - enabled: ${currentEnabled}, port: ${currentPort}`);
     
     // 检查是否是环境兼容性问题
@@ -27,7 +27,7 @@ export async function registerPrefsScripts(_window: Window) {
       ztoolkit.log(`[PreferenceScript] [DIAGNOSTIC] Found ${prefElements.length} preference-bound elements`);
       
       // 特别检查服务器启用元素
-      const serverEnabledElement = doc.querySelector('#zotero-prefpane-zotero-mcp-plugin-mcp-server-enabled');
+      const serverEnabledElement = doc.querySelector('#zotero-prefpane-zotero-agent-mcp-server-enabled');
       if (serverEnabledElement) {
         ztoolkit.log(`[PreferenceScript] [DIAGNOSTIC] Server enabled element found, initial checked state: ${serverEnabledElement.hasAttribute('checked')}`);
       } else {
@@ -92,7 +92,7 @@ function bindPrefEvents() {
 
   if (serverEnabledCheckbox) {
     // Initialize checkbox state
-    const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.enabled", true);
+    const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.enabled", true);
     serverEnabledCheckbox.checked = currentEnabled !== false;
     ztoolkit.log(`[PreferenceScript] Initialized checkbox state: ${currentEnabled}`);
 
@@ -102,7 +102,7 @@ function bindPrefEvents() {
       ztoolkit.log(`[PreferenceScript] Server toggle changed - checked: ${checked}`);
 
       // Update preference manually
-      Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.mcp.server.enabled", checked, true);
+      Zotero.Prefs.set("extensions.zotero.zotero-agent.mcp.server.enabled", checked, true);
 
       // Update cascade visibility
       updateServerDependentUI(doc, checked);
@@ -113,7 +113,7 @@ function bindPrefEvents() {
         if (httpServer) {
           if (checked) {
             if (!httpServer.isServerRunning()) {
-              const portPref = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.port", true);
+              const portPref = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.port", true);
               const port = typeof portPref === 'number' ? portPref : 23120;
               httpServer.start(port);
               ztoolkit.log(`[PreferenceScript] Server started on port ${port}`);
@@ -141,7 +141,7 @@ function bindPrefEvents() {
 
   // Initialize port value from pref
   if (portInput) {
-    const savedPort = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.port", true);
+    const savedPort = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.port", true);
     if (savedPort) portInput.value = String(savedPort);
   }
 
@@ -152,35 +152,35 @@ function bindPrefEvents() {
         addon.data.prefs!.window.alert(
           getString("pref-server-port-invalid" as any),
         );
-        const originalPort = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.port", true) || 23120;
+        const originalPort = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.port", true) || 23120;
         portInput.value = originalPort.toString();
       } else {
-        Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.mcp.server.port", port, true);
+        Zotero.Prefs.set("extensions.zotero.zotero-agent.mcp.server.port", port, true);
       }
     }
   });
 
   // Bind HTML toggle switches (these need manual pref sync since they're not XUL checkboxes)
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-mcp-server-allow-remote`, "extensions.zotero.zotero-mcp-plugin.mcp.server.allowRemote");
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-eval-enabled`, "extensions.zotero.zotero-mcp-plugin.eval.enabled");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-mcp-server-allow-remote`, "extensions.zotero.zotero-agent.mcp.server.allowRemote");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-eval-enabled`, "extensions.zotero.zotero-agent.eval.enabled");
   bindAuthToken(doc);
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-include-metadata`, "extensions.zotero.zotero-mcp-plugin.ui.includeMetadata");
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-semantic-auto-update`, "extensions.zotero.zotero-mcp-plugin.semantic.autoUpdate");
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-custom-include-webpage`, "extensions.zotero.zotero-mcp-plugin.custom.includeWebpage");
-  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-custom-enable-compression`, "extensions.zotero.zotero-mcp-plugin.custom.enableCompression");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-include-metadata`, "extensions.zotero.zotero-agent.ui.includeMetadata");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-semantic-auto-update`, "extensions.zotero.zotero-agent.semantic.autoUpdate");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-custom-include-webpage`, "extensions.zotero.zotero-agent.custom.includeWebpage");
+  bindHtmlCheckbox(doc, `#zotero-prefpane-${config.addonRef}-custom-enable-compression`, "extensions.zotero.zotero-agent.custom.enableCompression");
   bindScihubPanel(doc);
   bindScihubProxy(doc);
 
   // Bind HTML number/text inputs that need manual pref sync
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-max-tokens`, "extensions.zotero.zotero-mcp-plugin.ai.maxTokens", true);
-  bindHtmlSelect(doc, `#zotero-prefpane-${config.addonRef}-content-mode`, "extensions.zotero.zotero-mcp-plugin.content.mode");
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-content-length`, "extensions.zotero.zotero-mcp-plugin.custom.maxContentLength", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-attachments`, "extensions.zotero.zotero-mcp-plugin.custom.maxAttachments", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-notes`, "extensions.zotero.zotero-mcp-plugin.custom.maxNotes", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-keyword-count`, "extensions.zotero.zotero-mcp-plugin.custom.keywordCount", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-truncate-length`, "extensions.zotero.zotero-mcp-plugin.custom.smartTruncateLength", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-search-limit`, "extensions.zotero.zotero-mcp-plugin.custom.searchItemLimit", true);
-  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-annotations`, "extensions.zotero.zotero-mcp-plugin.custom.maxAnnotationsPerRequest", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-max-tokens`, "extensions.zotero.zotero-agent.ai.maxTokens", true);
+  bindHtmlSelect(doc, `#zotero-prefpane-${config.addonRef}-content-mode`, "extensions.zotero.zotero-agent.content.mode");
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-content-length`, "extensions.zotero.zotero-agent.custom.maxContentLength", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-attachments`, "extensions.zotero.zotero-agent.custom.maxAttachments", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-notes`, "extensions.zotero.zotero-agent.custom.maxNotes", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-keyword-count`, "extensions.zotero.zotero-agent.custom.keywordCount", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-truncate-length`, "extensions.zotero.zotero-agent.custom.smartTruncateLength", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-search-limit`, "extensions.zotero.zotero-agent.custom.searchItemLimit", true);
+  bindHtmlInput(doc, `#zotero-prefpane-${config.addonRef}-custom-max-annotations`, "extensions.zotero.zotero-agent.custom.maxAnnotationsPerRequest", true);
 
   // Client config generation
   const clientSelect = doc?.querySelector("#client-type-select") as HTMLSelectElement;
@@ -199,7 +199,7 @@ function bindPrefEvents() {
       const clientType = clientSelect?.value || "claude-desktop";
       const serverName = serverNameInput?.value?.trim() || "zotero-mcp";
       const port = parseInt(portInput?.value || "23120", 10);
-      const psk = String(Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.auth.token", true) || "");
+      const psk = String(Zotero.Prefs.get("extensions.zotero.zotero-agent.auth.token", true) || "");
 
       // Generate configuration (PSK baked into the Authorization: Bearer header)
       currentConfig = ClientConfigGenerator.generateConfig(clientType, port, serverName, psk);
@@ -310,7 +310,7 @@ function bindPrefEvents() {
  * Populate the PSK field and wire Copy / Regenerate buttons.
  */
 function bindAuthToken(doc: Document) {
-  const AUTH_TOKEN = "extensions.zotero.zotero-mcp-plugin.auth.token";
+  const AUTH_TOKEN = "extensions.zotero.zotero-agent.auth.token";
   const field = doc?.querySelector(`#zotero-prefpane-${config.addonRef}-auth-token`) as HTMLInputElement;
   const copyBtn = doc?.querySelector("#copy-auth-token-button") as HTMLButtonElement;
   const regenBtn = doc?.querySelector("#regen-auth-token-button") as HTMLButtonElement;
@@ -416,8 +416,8 @@ function updateRateLimitSummary(doc: Document) {
   costInput?.addEventListener('change', update);
 }
 
-const PREF_SEMANTIC_ENABLED = 'extensions.zotero.zotero-mcp-plugin.semantic.enabled';
-const PREF_SERVER_ENABLED = 'extensions.zotero.zotero-mcp-plugin.mcp.server.enabled';
+const PREF_SEMANTIC_ENABLED = 'extensions.zotero.zotero-agent.semantic.enabled';
+const PREF_SERVER_ENABLED = 'extensions.zotero.zotero-agent.mcp.server.enabled';
 
 // Module-level flag: suppress logging during auto-refresh
 let _silentRefresh = false;
@@ -536,7 +536,7 @@ function bindEmbeddingSettings(doc: Document) {
 
   // Initialize provider select from saved apiBase
   if (providerSelect) {
-    const savedApiBase = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.apiBase", true) as string;
+    const savedApiBase = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.apiBase", true) as string;
     providerSelect.value = detectProvider(savedApiBase || "");
   }
 
@@ -548,10 +548,10 @@ function bindEmbeddingSettings(doc: Document) {
     }
   };
 
-  initValue(apiBaseInput, "extensions.zotero.zotero-mcp-plugin.embedding.apiBase", "https://api.openai.com/v1");
-  initValue(apiKeyInput, "extensions.zotero.zotero-mcp-plugin.embedding.apiKey", "");
-  initValue(modelInput, "extensions.zotero.zotero-mcp-plugin.embedding.model", "text-embedding-3-small");
-  initValue(dimensionsInput, "extensions.zotero.zotero-mcp-plugin.embedding.dimensions", "512");
+  initValue(apiBaseInput, "extensions.zotero.zotero-agent.embedding.apiBase", "https://api.openai.com/v1");
+  initValue(apiKeyInput, "extensions.zotero.zotero-agent.embedding.apiKey", "");
+  initValue(modelInput, "extensions.zotero.zotero-agent.embedding.model", "text-embedding-3-small");
+  initValue(dimensionsInput, "extensions.zotero.zotero-agent.embedding.dimensions", "512");
 
   // API endpoint preview
   const endpointPreview = doc?.querySelector("#embedding-api-endpoint-preview") as HTMLElement;
@@ -598,7 +598,7 @@ function bindEmbeddingSettings(doc: Document) {
     if (dimensionsRow && testResult) {
       if (!supportsCustom) {
         // For non-supporting models, show info about auto-detection
-        const detectedDims = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.detectedDimensions", true);
+        const detectedDims = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.detectedDimensions", true);
         if (detectedDims) {
           testResult.textContent = `${getString("pref-embedding-detected-dims" as any) || "Detected dimensions"}: ${detectedDims}`;
           testResult.style.color = "var(--color-muted)";
@@ -620,7 +620,7 @@ function bindEmbeddingSettings(doc: Document) {
         // Only fill in API Base URL
         if (apiBaseInput) {
           apiBaseInput.value = preset.apiBase;
-          Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.embedding.apiBase", preset.apiBase, true);
+          Zotero.Prefs.set("extensions.zotero.zotero-agent.embedding.apiBase", preset.apiBase, true);
         }
 
         // Update model placeholder hint (don't change the value)
@@ -656,15 +656,15 @@ function bindEmbeddingSettings(doc: Document) {
     });
   };
 
-  bindSave(apiBaseInput, "extensions.zotero.zotero-mcp-plugin.embedding.apiBase");
-  bindSave(apiKeyInput, "extensions.zotero.zotero-mcp-plugin.embedding.apiKey");
-  bindSave(dimensionsInput, "extensions.zotero.zotero-mcp-plugin.embedding.dimensions", true);
-  bindSave(timeoutInput, "extensions.zotero.zotero-mcp-plugin.embedding.timeoutSeconds", true);
+  bindSave(apiBaseInput, "extensions.zotero.zotero-agent.embedding.apiBase");
+  bindSave(apiKeyInput, "extensions.zotero.zotero-agent.embedding.apiKey");
+  bindSave(dimensionsInput, "extensions.zotero.zotero-agent.embedding.dimensions", true);
+  bindSave(timeoutInput, "extensions.zotero.zotero-agent.embedding.timeoutSeconds", true);
 
   // Model change handler - update dimensions visibility and clear detected dimensions
   modelInput?.addEventListener("change", async () => {
     const model = modelInput.value;
-    Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.embedding.model", model, true);
+    Zotero.Prefs.set("extensions.zotero.zotero-agent.embedding.model", model, true);
     ztoolkit.log(`[PreferenceScript] Saved embedding pref: model = ${model}`);
 
     // Clear detected dimensions when model changes
@@ -810,7 +810,7 @@ function bindEmbeddingSettings(doc: Document) {
           testResult.style.color = "var(--color-warn)";
 
           // Save detected dimensions but don't update config dimensions
-          Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.embedding.detectedDimensions", dims, true);
+          Zotero.Prefs.set("extensions.zotero.zotero-agent.embedding.detectedDimensions", dims, true);
         } else {
           // No mismatch or no existing vectors - safe to update
           testResult.textContent = getString("pref-embedding-test-success" as any) + ` (${dims} dims)`;
@@ -819,12 +819,12 @@ function bindEmbeddingSettings(doc: Document) {
           // Update dimensions
           if (dims > 0) {
             // Save detected dimensions
-            Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.embedding.detectedDimensions", dims, true);
+            Zotero.Prefs.set("extensions.zotero.zotero-agent.embedding.detectedDimensions", dims, true);
 
             // Only update config dimensions for models that support custom dimensions
             if (supportsCustomDimensions(model) && dimensionsInput) {
               dimensionsInput.value = String(dims);
-              Zotero.Prefs.set("extensions.zotero.zotero-mcp-plugin.embedding.dimensions", dims, true);
+              Zotero.Prefs.set("extensions.zotero.zotero-agent.embedding.dimensions", dims, true);
             }
 
             // Update embedding service
@@ -911,7 +911,7 @@ function bindEmbeddingSettings(doc: Document) {
  */
 function getEmbeddingTimeoutSeconds(): number {
   try {
-    const raw = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.timeoutSeconds", true);
+    const raw = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.timeoutSeconds", true);
     const seconds = parseInt(String(raw ?? ""), 10);
     if (isNaN(seconds) || seconds <= 0) return 0;
     return Math.min(600, Math.max(5, seconds));
@@ -926,10 +926,10 @@ function updateEmbeddingServiceConfig() {
     const { getEmbeddingService } = require("./semantic/embeddingService");
     const embeddingService = getEmbeddingService();
 
-    const apiBase = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.apiBase", true) || "";
-    const apiKey = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.apiKey", true) || "";
-    const model = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.model", true) || "";
-    const dimensions = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.dimensions", true);
+    const apiBase = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.apiBase", true) || "";
+    const apiKey = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.apiKey", true) || "";
+    const model = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.model", true) || "";
+    const dimensions = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.dimensions", true);
     const timeoutSeconds = getEmbeddingTimeoutSeconds();
 
     embeddingService.updateConfig({
@@ -978,9 +978,9 @@ function bindApiUsageStats(doc: Document) {
     }
   };
 
-  initRateLimitValue(rpmInput, "extensions.zotero.zotero-mcp-plugin.embedding.rpm", "60");
-  initRateLimitValue(tpmInput, "extensions.zotero.zotero-mcp-plugin.embedding.tpm", "150000");
-  initRateLimitValue(costInput, "extensions.zotero.zotero-mcp-plugin.embedding.costPer1M", "0.02");
+  initRateLimitValue(rpmInput, "extensions.zotero.zotero-agent.embedding.rpm", "60");
+  initRateLimitValue(tpmInput, "extensions.zotero.zotero-agent.embedding.tpm", "150000");
+  initRateLimitValue(costInput, "extensions.zotero.zotero-agent.embedding.costPer1M", "0.02");
 
   // Save rate limit on change
   const bindRateLimitSave = (input: HTMLInputElement, prefKey: string, isFloat = false) => {
@@ -999,9 +999,9 @@ function bindApiUsageStats(doc: Document) {
     });
   };
 
-  bindRateLimitSave(rpmInput, "extensions.zotero.zotero-mcp-plugin.embedding.rpm");
-  bindRateLimitSave(tpmInput, "extensions.zotero.zotero-mcp-plugin.embedding.tpm");
-  bindRateLimitSave(costInput, "extensions.zotero.zotero-mcp-plugin.embedding.costPer1M", true);
+  bindRateLimitSave(rpmInput, "extensions.zotero.zotero-agent.embedding.rpm");
+  bindRateLimitSave(tpmInput, "extensions.zotero.zotero-agent.embedding.tpm");
+  bindRateLimitSave(costInput, "extensions.zotero.zotero-agent.embedding.costPer1M", true);
 
   // Load usage stats on page load
   loadApiUsageStats();
@@ -1084,9 +1084,9 @@ function updateEmbeddingServiceRateLimits() {
     const { getEmbeddingService } = require("./semantic/embeddingService");
     const embeddingService = getEmbeddingService();
 
-    const rpm = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.rpm", true);
-    const tpm = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.tpm", true);
-    const costPer1M = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.costPer1M", true);
+    const rpm = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.rpm", true);
+    const tpm = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.tpm", true);
+    const costPer1M = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.costPer1M", true);
 
     embeddingService.setRateLimitConfig({
       rpm: rpm ? parseInt(String(rpm), 10) : 60,
@@ -1635,7 +1635,7 @@ function bindSemanticStatsSettings(doc: Document) {
       if (dimensionsEl) {
         if (stats.indexStats.storedDimensions) {
           // Get configured dimensions from prefs to show comparison
-          const configuredDims = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.embedding.dimensions", true);
+          const configuredDims = Zotero.Prefs.get("extensions.zotero.zotero-agent.embedding.dimensions", true);
           const configuredDimsNum = configuredDims ? parseInt(String(configuredDims), 10) : null;
           if (configuredDimsNum && configuredDimsNum !== stats.indexStats.storedDimensions) {
             dimensionsEl.textContent = `${stats.indexStats.storedDimensions} (${getString("pref-semantic-stats-dimensions-mismatch" as any) || "mismatch"}: ${configuredDims})`;
@@ -1838,8 +1838,8 @@ function bindSemanticStatsSettings(doc: Document) {
 
 // ============ Sci-Hub Panel ============
 
-const SCIHUB_ENABLED_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.enabled";
-const SCIHUB_SOURCES_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.sources";
+const SCIHUB_ENABLED_KEY = "extensions.zotero.zotero-agent.scihub.enabled";
+const SCIHUB_SOURCES_KEY = "extensions.zotero.zotero-agent.scihub.sources";
 const FINDPDFS_KEY = "extensions.zotero.findPDFs.resolvers";
 
 function readScihubSources(): { url: string; selector?: string; attribute?: string }[] {
@@ -1904,11 +1904,11 @@ function updateScihubUI(doc: Document, enabled: boolean) {
 
 // ============ Sci-Hub Download Proxy ============
 
-const PROXY_ENABLED_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.proxy.enabled";
-const PROXY_HOST_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.proxy.host";
-const PROXY_PORT_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.proxy.port";
-const PROXY_SAVED_TYPE_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.proxy.savedType";
-const PROXY_SAVED_HIJACK_KEY = "extensions.zotero.zotero-mcp-plugin.scihub.proxy.savedHijack";
+const PROXY_ENABLED_KEY = "extensions.zotero.zotero-agent.scihub.proxy.enabled";
+const PROXY_HOST_KEY = "extensions.zotero.zotero-agent.scihub.proxy.host";
+const PROXY_PORT_KEY = "extensions.zotero.zotero-agent.scihub.proxy.port";
+const PROXY_SAVED_TYPE_KEY = "extensions.zotero.zotero-agent.scihub.proxy.savedType";
+const PROXY_SAVED_HIJACK_KEY = "extensions.zotero.zotero-agent.scihub.proxy.savedHijack";
 const NP_TYPE = "network.proxy.type";
 const NP_AUTOCONFIG = "network.proxy.autoconfig_url";
 const NP_HIJACK = "network.proxy.allow_hijacking_localhost";

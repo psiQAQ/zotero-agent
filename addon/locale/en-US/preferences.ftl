@@ -46,7 +46,7 @@ pref-include-metadata-text = Include Metadata
 pref-include-metadata-sub = Return title, authors, DOI and other fields
 
 pref-client-config-title = Client Configuration
-pref-client-config-description = Generate MCP server configuration files for popular AI clients to easily connect to the Zotero MCP server.
+pref-client-config-description = Generate MCP server configuration files for popular AI clients to easily connect to the Zotero Agent server.
 pref-section-client-desc = Select your AI client and generate connection config
 pref-client-type-label = Client
 pref-server-name-label = Server Name
@@ -216,8 +216,8 @@ pref-detail-stats-title = Detailed Stats & API Usage
 pref-detail-index-section = Index Details
 pref-detail-api-section = API Cumulative
 
-first-install-title = Welcome to Zotero MCP Plugin
-first-install-prompt = Thank you for installing the Zotero MCP Plugin! To get started, you need to generate configuration files for your AI clients. Would you like to open the settings page now to generate configurations?
+first-install-title = Welcome to Zotero Agent
+first-install-prompt = Thank you for installing the Zotero Agent! To get started, you need to generate configuration files for your AI clients. Would you like to open the settings page now to generate configurations?
 first-install-open-prefs = Open Settings
 first-install-later = Configure Later
 

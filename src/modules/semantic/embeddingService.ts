@@ -166,22 +166,22 @@ const DEFAULT_CONFIG: EmbeddingConfig = {
 };
 
 // Preference keys for storing API configuration
-const PREF_API_BASE = 'extensions.zotero.zotero-mcp-plugin.embedding.apiBase';
-const PREF_API_KEY = 'extensions.zotero.zotero-mcp-plugin.embedding.apiKey';
-const PREF_MODEL = 'extensions.zotero.zotero-mcp-plugin.embedding.model';
-const PREF_DIMENSIONS = 'extensions.zotero.zotero-mcp-plugin.embedding.dimensions';
-const PREF_DETECTED_DIMENSIONS = 'extensions.zotero.zotero-mcp-plugin.embedding.detectedDimensions';
-const PREF_TIMEOUT_SECONDS = 'extensions.zotero.zotero-mcp-plugin.embedding.timeoutSeconds';
+const PREF_API_BASE = 'extensions.zotero.zotero-agent.embedding.apiBase';
+const PREF_API_KEY = 'extensions.zotero.zotero-agent.embedding.apiKey';
+const PREF_MODEL = 'extensions.zotero.zotero-agent.embedding.model';
+const PREF_DIMENSIONS = 'extensions.zotero.zotero-agent.embedding.dimensions';
+const PREF_DETECTED_DIMENSIONS = 'extensions.zotero.zotero-agent.embedding.detectedDimensions';
+const PREF_TIMEOUT_SECONDS = 'extensions.zotero.zotero-agent.embedding.timeoutSeconds';
 
 // Bounds for the user-configurable API timeout (#59)
 const MIN_TIMEOUT_SECONDS = 5;
 const MAX_TIMEOUT_SECONDS = 600;
 
 // Preference keys for rate limit and usage stats
-const PREF_RPM = 'extensions.zotero.zotero-mcp-plugin.embedding.rpm';
-const PREF_TPM = 'extensions.zotero.zotero-mcp-plugin.embedding.tpm';
-const PREF_COST_PER_1M = 'extensions.zotero.zotero-mcp-plugin.embedding.costPer1M';
-const PREF_USAGE_STATS = 'extensions.zotero.zotero-mcp-plugin.embedding.usageStats';
+const PREF_RPM = 'extensions.zotero.zotero-agent.embedding.rpm';
+const PREF_TPM = 'extensions.zotero.zotero-agent.embedding.tpm';
+const PREF_COST_PER_1M = 'extensions.zotero.zotero-agent.embedding.costPer1M';
+const PREF_USAGE_STATS = 'extensions.zotero.zotero-agent.embedding.usageStats';
 
 // Default rate limit config
 const DEFAULT_RATE_LIMIT: RateLimitConfig = {

@@ -46,7 +46,7 @@ pref-include-metadata-text = Metadaten einbeziehen
 pref-include-metadata-sub = Titel, Autoren, DOI und andere Felder zurückgeben
 
 pref-client-config-title = Client-Konfiguration
-pref-client-config-description = Erstellen Sie MCP-Server-Konfigurationsdateien für gängige KI-Clients, um sich einfach mit dem Zotero MCP-Server zu verbinden.
+pref-client-config-description = Erstellen Sie MCP-Server-Konfigurationsdateien für gängige KI-Clients, um sich einfach mit dem Zotero Agent Server zu verbinden.
 pref-section-client-desc = Wählen Sie Ihren KI-Client und generieren Sie die Verbindungskonfiguration
 pref-client-type-label = Client
 pref-server-name-label = Servername
@@ -216,8 +216,8 @@ pref-detail-stats-title = Detaillierte Statistiken und API-Nutzung
 pref-detail-index-section = Index-Details
 pref-detail-api-section = API kumuliert
 
-first-install-title = Willkommen beim Zotero MCP Plugin
-first-install-prompt = Vielen Dank für die Installation des Zotero MCP Plugins! Um zu beginnen, müssen Sie Konfigurationsdateien für Ihre KI-Clients generieren. Möchten Sie jetzt die Einstellungsseite öffnen, um Konfigurationen zu erstellen?
+first-install-title = Willkommen beim Zotero Agent
+first-install-prompt = Vielen Dank für die Installation des Zotero Agents! Um zu beginnen, müssen Sie Konfigurationsdateien für Ihre KI-Clients generieren. Möchten Sie jetzt die Einstellungsseite öffnen, um Konfigurationen zu erstellen?
 first-install-open-prefs = Einstellungen öffnen
 first-install-later = Später konfigurieren
 

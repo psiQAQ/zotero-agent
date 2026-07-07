@@ -1,5 +1,5 @@
 /**
- * Semantic Search Service for Zotero MCP Plugin
+ * Semantic Search Service for Zotero Agent
  *
  * Main service that orchestrates:
  * - Embedding generation (EmbeddingService)
@@ -18,7 +18,7 @@ declare let Zotero: any;
 declare let ztoolkit: ZToolkit;
 
 // Preference key for persisting index progress
-const PREF_INDEX_PROGRESS = 'extensions.zotero.zotero-mcp-plugin.semantic.indexProgress';
+const PREF_INDEX_PROGRESS = 'extensions.zotero.zotero-agent.semantic.indexProgress';
 
 // ============ Interfaces ============
 

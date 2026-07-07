@@ -9,8 +9,8 @@ import { registerSemanticIndexColumn, unregisterSemanticIndexColumn, refreshSema
 import { runSelfTest, listSuites } from "./modules/selfTest";
 
 // Preference keys for semantic search settings
-const PREF_SEMANTIC_ENABLED = 'extensions.zotero.zotero-mcp-plugin.semantic.enabled';
-const PREF_SEMANTIC_AUTO_UPDATE = 'extensions.zotero.zotero-mcp-plugin.semantic.autoUpdate';
+const PREF_SEMANTIC_ENABLED = 'extensions.zotero.zotero-agent.semantic.enabled';
+const PREF_SEMANTIC_AUTO_UPDATE = 'extensions.zotero.zotero-agent.semantic.autoUpdate';
 
 // Store notifier ID for cleanup
 let itemNotifierID: string | null = null;
@@ -219,7 +219,7 @@ function registerItemNotifier() {
         handleItemsDeleted(numericIds, extraData);
       }
     }
-  }, ['item'], 'zotero-mcp-plugin-auto-update');
+  }, ['item'], 'zotero-agent-auto-update');
 
   ztoolkit.log(`[MCP Plugin] Item notifier registered: ${itemNotifierID}`);
 
@@ -443,7 +443,7 @@ async function onStartup() {
     if (isShuttingDown) return; // 关闭时不处理偏好变化
     ztoolkit.log(`[MCP Plugin] Preference changed: ${name}`);
 
-    if (name === "extensions.zotero.zotero-mcp-plugin.mcp.server.port" || name === "extensions.zotero.zotero-mcp-plugin.mcp.server.enabled") {
+    if (name === "extensions.zotero.zotero-agent.mcp.server.port" || name === "extensions.zotero.zotero-agent.mcp.server.enabled") {
       try {
         if (httpServer.isServerRunning()) {
           httpServer.stop();
@@ -475,8 +475,8 @@ async function onStartup() {
   registerItemNotifier();
   ztoolkit.log("[MCP Plugin] [STARTUP] Item notifier registered");
 
-  (Zotero as any).ZoteroMCPSelfTest = { run: runSelfTest, list: listSuites };
-  ztoolkit.log("[MCP Plugin] [STARTUP] ZoteroMCPSelfTest mounted");
+  (Zotero as any).ZoteroAgentSelfTest = { run: runSelfTest, list: listSuites };
+  ztoolkit.log("[MCP Plugin] [STARTUP] ZoteroAgentSelfTest mounted");
 
   addon.data.initialized = true;
   ztoolkit.log("[MCP Plugin] ======== STARTUP COMPLETE ========");
@@ -602,7 +602,7 @@ function onShutdown(): void {
     ztoolkit.log(`[MCP Plugin] [SHUTDOWN] Error removing menus: ${err.message}`, "error");
   }
 
-  delete (Zotero as any).ZoteroMCPSelfTest;
+  delete (Zotero as any).ZoteroAgentSelfTest;
 
   ztoolkit.log("[MCP Plugin] [SHUTDOWN] Unregistering server preferences...");
   serverPreferences.unregister();
@@ -648,16 +648,16 @@ async function onPrefsEvent(type: string, data: { [key: string]: any }) {
           ztoolkit.log(`===MCP=== [hooks.ts] [DIAGNOSTIC] Preference window available`);
           
           // 检查当前偏好设置状态
-          const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.enabled", true);
-          const currentPort = Zotero.Prefs.get("extensions.zotero.zotero-mcp-plugin.mcp.server.port", true);
+          const currentEnabled = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.enabled", true);
+          const currentPort = Zotero.Prefs.get("extensions.zotero.zotero-agent.mcp.server.port", true);
           ztoolkit.log(`===MCP=== [hooks.ts] [DIAGNOSTIC] Current prefs at panel load - enabled: ${currentEnabled}, port: ${currentPort}`);
           
           // 检查preference元素是否存在
           trackedSetTimeout(() => {
             try {
               const doc = data.window.document;
-              const enabledElement = doc?.querySelector('#zotero-prefpane-zotero-mcp-plugin-mcp-server-enabled');
-              const portElement = doc?.querySelector('#zotero-prefpane-zotero-mcp-plugin-mcp-server-port');
+              const enabledElement = doc?.querySelector('#zotero-prefpane-zotero-agent-mcp-server-enabled');
+              const portElement = doc?.querySelector('#zotero-prefpane-zotero-agent-mcp-server-port');
 
               ztoolkit.log(`===MCP=== [hooks.ts] [DIAGNOSTIC] Preference elements - enabled: ${!!enabledElement}, port: ${!!portElement}`);
 
@@ -715,8 +715,8 @@ function checkFirstInstallation() {
 function showFirstInstallPrompt() {
   try {
     // Use bilingual text for first install prompt
-    const title = "欢迎使用 Zotero MCP 插件 / Welcome to Zotero MCP Plugin";
-    const promptText = "感谢安装 Zotero MCP 插件！为了开始使用，您需要为您的 AI 客户端生成配置文件。是否现在打开设置页面来生成配置？\n使用技巧请关注设置页面公众号。\n\nThank you for installing the Zotero MCP Plugin! To get started, you need to generate configuration files for your AI clients. Would you like to open the settings page now to generate configurations?";
+    const title = "欢迎使用 Zotero Agent / Welcome to Zotero Agent";
+    const promptText = "感谢安装 Zotero Agent！为了开始使用，您需要为您的 AI 客户端生成配置文件。是否现在打开设置页面来生成配置？\n使用技巧请关注设置页面公众号。\n\nThank you for installing the Zotero Agent! To get started, you need to generate configuration files for your AI clients. Would you like to open the settings page now to generate configurations?";
     const openPrefsText = "打开设置 / Open Settings";
     const laterText = "稍后配置 / Configure Later";
     
@@ -1311,7 +1311,7 @@ function showNotification(win: _ZoteroTypes.MainWindow, message: string) {
   try {
     // Use Zotero's progress window for notification
     const progressWin = new Zotero.ProgressWindow({ closeOnClick: true });
-    progressWin.changeHeadline("Zotero MCP");
+    progressWin.changeHeadline("Zotero Agent");
     progressWin.addDescription(message);
     progressWin.show();
     progressWin.startCloseTimer(3000);

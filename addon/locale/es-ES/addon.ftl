@@ -1,10 +1,10 @@
 startup-begin = El complemento se está cargando
 startup-finish = El complemento está listo
-menuitem-label = Plugin Zotero MCP: Ejemplos de ayuda
-menupopup-label = Plugin Zotero MCP: Menú emergente
-menuitem-submenulabel = Plugin Zotero MCP
-menuitem-filemenulabel = Plugin Zotero MCP: Elemento de menú Archivo
-prefs-title = Plugin Zotero MCP
+menuitem-label = Zotero Agent: Ejemplos de ayuda
+menupopup-label = Zotero Agent: Menú emergente
+menuitem-submenulabel = Zotero Agent
+menuitem-filemenulabel = Zotero Agent: Elemento de menú Archivo
+prefs-title = Zotero Agent
 prefs-table-title = Título
 prefs-table-detail = Detalle
 tabpanel-lib-tab-label = Pestaña de biblioteca

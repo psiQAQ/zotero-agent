@@ -1,6 +1,6 @@
 /**
  * In-process self-test harness, driven by an agent through run_javascript:
- *   await Zotero.ZoteroMCPSelfTest.run('protocol')
+ *   await Zotero.ZoteroAgentSelfTest.run('protocol')
  * Suites hit our own HTTP server via in-process fetch — full-stack coverage.
  */
 
@@ -118,7 +118,7 @@ export function listSuites(): string[] {
 
 // ---------------------------------------------------------------- suites
 
-const PREF = "extensions.zotero.zotero-mcp-plugin.";
+const PREF = "extensions.zotero.zotero-agent.";
 
 async function mcpPost(
   body: any,

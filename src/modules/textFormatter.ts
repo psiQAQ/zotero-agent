@@ -1,5 +1,5 @@
 /**
- * Text Formatting Utilities for Zotero MCP Plugin
+ * Text Formatting Utilities for Zotero Agent
  * Handles conversion from HTML to well-formatted plain text while preserving structure
  */
 

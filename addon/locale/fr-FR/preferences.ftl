@@ -216,8 +216,8 @@ pref-detail-stats-title = Statistiques detaillees et utilisation de l'API
 pref-detail-index-section = Details de l'index
 pref-detail-api-section = API cumule
 
-first-install-title = Bienvenue dans le plugin Zotero MCP
-first-install-prompt = Merci d'avoir installe le plugin Zotero MCP ! Pour commencer, vous devez generer des fichiers de configuration pour vos clients IA. Souhaitez-vous ouvrir la page des parametres maintenant pour generer les configurations ?
+first-install-title = Bienvenue dans le Zotero Agent
+first-install-prompt = Merci d'avoir installe le Zotero Agent ! Pour commencer, vous devez generer des fichiers de configuration pour vos clients IA. Souhaitez-vous ouvrir la page des parametres maintenant pour generer les configurations ?
 first-install-open-prefs = Ouvrir les parametres
 first-install-later = Configurer plus tard
 

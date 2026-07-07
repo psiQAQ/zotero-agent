@@ -1,5 +1,5 @@
 /**
- * API Endpoint Handlers for Zotero MCP Plugin
+ * API Endpoint Handlers for Zotero Agent
  */
 
 

@@ -1304,14 +1304,14 @@ export class StreamableMCPServer {
     ];
 
     // Filter out semantic tools if semantic search is disabled
-    const semanticEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.semantic.enabled', true);
+    const semanticEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.semantic.enabled', true);
     const semanticToolNames = new Set(['semantic_search', 'find_similar', 'semantic_status']);
     const filteredTools = semanticEnabled === false
       ? tools.filter((t: any) => !semanticToolNames.has(t.name))
       : tools;
 
     // Filter out write tools if write operations are disabled (default: disabled)
-    const writeEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+    const writeEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
     const writeToolNames = new Set([
       'write_note', 'write_tag', 'write_metadata', 'write_item',
       'create_collection', 'update_collection', 'delete_collection',
@@ -1325,7 +1325,7 @@ export class StreamableMCPServer {
       : filteredTools.filter((t: any) => !writeToolNames.has(t.name));
 
     // Filter out eval-gated tools when eval is disabled (default: disabled)
-    const evalEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.eval.enabled', true);
+    const evalEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.eval.enabled', true);
     const evalToolNames = new Set(['run_javascript', 'reload_plugin', 'install_plugin_from_url']);
     if (evalEnabled !== true) {
       finalTools = finalTools.filter((t: any) => !evalToolNames.has(t.name));
@@ -1415,9 +1415,9 @@ export class StreamableMCPServer {
           break;
 
         case 'create_collection': {
-          const writeEnabledCC = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledCC = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledCC !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.name) {
             throw new Error('name is required');
@@ -1427,9 +1427,9 @@ export class StreamableMCPServer {
         }
 
         case 'update_collection': {
-          const writeEnabledUC = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledUC = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledUC !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.collectionKey) {
             throw new Error('collectionKey is required');
@@ -1439,9 +1439,9 @@ export class StreamableMCPServer {
         }
 
         case 'delete_collection': {
-          const writeEnabledDC = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledDC = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledDC !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.collectionKey) {
             throw new Error('collectionKey is required');
@@ -1451,9 +1451,9 @@ export class StreamableMCPServer {
         }
 
         case 'add_items_to_collection': {
-          const writeEnabledAI = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledAI = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledAI !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.collectionKey) {
             throw new Error('collectionKey is required');
@@ -1467,9 +1467,9 @@ export class StreamableMCPServer {
         }
 
         case 'remove_items_from_collection': {
-          const writeEnabledRI = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledRI = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledRI !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.collectionKey) {
             throw new Error('collectionKey is required');
@@ -1500,9 +1500,9 @@ export class StreamableMCPServer {
         case 'semantic_search':
         case 'find_similar':
         case 'semantic_status': {
-          const semEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.semantic.enabled', true);
+          const semEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.semantic.enabled', true);
           if (semEnabled === false) {
-            throw new Error('Semantic search is disabled. Enable it in Zotero MCP Plugin preferences.');
+            throw new Error('Semantic search is disabled. Enable it in Zotero Agent preferences.');
           }
           if (name === 'semantic_search') {
             if (!args?.query) throw new Error('query is required');
@@ -1525,9 +1525,9 @@ export class StreamableMCPServer {
 
         // Write Tools
         case 'write_note': {
-          const writeEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabled !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.action || !args?.content) {
             throw new Error('action and content are required');
@@ -1537,9 +1537,9 @@ export class StreamableMCPServer {
         }
 
         case 'write_tag': {
-          const writeEnabled2 = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabled2 = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabled2 !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.action || !args?.itemKey || !args?.tags) {
             throw new Error('action, itemKey, and tags are required');
@@ -1549,9 +1549,9 @@ export class StreamableMCPServer {
         }
 
         case 'write_metadata': {
-          const writeEnabled3 = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabled3 = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabled3 !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.itemKey) {
             throw new Error('itemKey is required');
@@ -1564,9 +1564,9 @@ export class StreamableMCPServer {
         }
 
         case 'write_item': {
-          const writeEnabled4 = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabled4 = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabled4 !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.action) {
             throw new Error('action is required');
@@ -1576,7 +1576,7 @@ export class StreamableMCPServer {
         }
 
         case 'run_javascript': {
-          const evalEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.eval.enabled', true);
+          const evalEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.eval.enabled', true);
           if (evalEnabled !== true) {
             throw new Error('JavaScript execution is disabled. Enable "Run JavaScript (eval)" in the plugin preferences to use this tool.');
           }
@@ -1591,7 +1591,7 @@ export class StreamableMCPServer {
         }
 
         case 'reload_plugin': {
-          const evalEnabledRP = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.eval.enabled', true);
+          const evalEnabledRP = Zotero.Prefs.get('extensions.zotero.zotero-agent.eval.enabled', true);
           if (evalEnabledRP !== true) {
             throw new Error("Dev tools are disabled. Enable 'Run JavaScript' in Zotero Settings → MCP Server.");
           }
@@ -1600,7 +1600,7 @@ export class StreamableMCPServer {
         }
 
         case 'install_plugin_from_url': {
-          const evalEnabledIP = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.eval.enabled', true);
+          const evalEnabledIP = Zotero.Prefs.get('extensions.zotero.zotero-agent.eval.enabled', true);
           if (evalEnabledIP !== true) {
             throw new Error("Dev tools are disabled. Enable 'Run JavaScript' in Zotero Settings → MCP Server.");
           }
@@ -1612,9 +1612,9 @@ export class StreamableMCPServer {
         }
 
         case 'import_by_identifier': {
-          const writeEnabledIB = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledIB = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledIB !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.identifier) {
             throw new Error('identifier is required');
@@ -1628,15 +1628,15 @@ export class StreamableMCPServer {
 
         case 'find_missing_pdfs': {
           if (args?.action === 'fetch') {
-            const writeEnabledFMP = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+            const writeEnabledFMP = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
             if (writeEnabledFMP !== true) {
-              throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+              throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
             }
             const fetchResult = await findMissingPdfs({
               ...args,
               libraryID: args?.libraryID ?? Zotero.Libraries.userLibraryID,
             });
-            const scihubOn = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.scihub.enabled', true) === true;
+            const scihubOn = Zotero.Prefs.get('extensions.zotero.zotero-agent.scihub.enabled', true) === true;
             if (scihubOn) {
               (fetchResult as any).greySourceWarning = "⚠️ 已启用 Sci-Hub / Anna's Archive 灰色源，下载可能来自这些源，请确认合规";
             }
@@ -1644,7 +1644,7 @@ export class StreamableMCPServer {
               const win = ((globalThis as any).ZoteroPane?.document?.defaultView) || (Zotero.getMainWindow && Zotero.getMainWindow());
               if (win) {
                 const pw = new (Zotero as any).ProgressWindow({ closeOnClick: true });
-                pw.changeHeadline('Zotero MCP');
+                pw.changeHeadline('Zotero Agent');
                 pw.addDescription(`查找全文完成：下载 ${(fetchResult as any).fetched ?? 0} 篇${scihubOn ? '（含灰色源）' : ''}`);
                 pw.show();
                 pw.startCloseTimer(3000);
@@ -1698,20 +1698,20 @@ export class StreamableMCPServer {
           const act = args?.action;
           if (act === 'list') {
             const all = readAll();
-            const scihubEnabled = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.scihub.enabled', true) === true;
+            const scihubEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.scihub.enabled', true) === true;
             result = { resolvers: all, mcpManaged: all.filter((r: any) => r?.mcpManaged), presets: Object.keys(RESOLVER_PRESETS), scihubEnabled };
             break;
           }
           // write-gated actions
-          if (Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true) !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+          if (Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true) !== true) {
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (act === 'enable' || act === 'disable') {
             const enabled = act === 'enable';
-            Zotero.Prefs.set('extensions.zotero.zotero-mcp-plugin.scihub.enabled', enabled, true);
-            const srcRaw = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.scihub.sources', true);
+            Zotero.Prefs.set('extensions.zotero.zotero-agent.scihub.enabled', enabled, true);
+            const srcRaw = Zotero.Prefs.get('extensions.zotero.zotero-agent.scihub.sources', true);
             let sources = parseSources(srcRaw);
-            if (!sources.length) { sources = DEFAULT_SCIHUB_SOURCES; Zotero.Prefs.set('extensions.zotero.zotero-mcp-plugin.scihub.sources', JSON.stringify(sources), true); }
+            if (!sources.length) { sources = DEFAULT_SCIHUB_SOURCES; Zotero.Prefs.set('extensions.zotero.zotero-agent.scihub.sources', JSON.stringify(sources), true); }
             const next = syncScihubResolvers(enabled, sources, Zotero.Prefs.get(PREF_KEY, true));
             Zotero.Prefs.set(PREF_KEY, JSON.stringify(next), true);
             result = { scihubEnabled: enabled, sourceCount: sources.length, greySourceWarning: enabled ? "⚠️ Sci-Hub / Anna's Archive 是灰色源，请确认你所在辖区的合规性" : undefined };
@@ -1775,18 +1775,18 @@ export class StreamableMCPServer {
         }
 
         case 'find_duplicates': {
-          const writeEnabledFD = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledFD = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledFD !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           result = await findDuplicates(args?.libraryID ?? Zotero.Libraries.userLibraryID, args?.limit);
           break;
         }
 
         case 'merge_duplicates': {
-          const writeEnabledMD = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledMD = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledMD !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           if (!args?.masterKey) throw new Error('masterKey is required');
           const otherKeys = normalizeStringList(args?.otherKeys);
@@ -1801,9 +1801,9 @@ export class StreamableMCPServer {
         }
 
         case 'batch_update_tags': {
-          const writeEnabledBUT = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledBUT = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledBUT !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           let scope = args?.scope;
           if (typeof scope === 'string') {
@@ -1857,11 +1857,11 @@ export class StreamableMCPServer {
           if (openURL?.createContextObject) {
             const ctx = openURL.createContextObject(itemFD, '1.0');
             if (ctx) {
-              const ouUrl = `https://www.crossref.org/openurl?pid=zotero-mcp-plugin&${ctx}&multihit=true`;
+              const ouUrl = `https://www.crossref.org/openurl?pid=zotero-agent&${ctx}&multihit=true`;
               let ouResp: any;
               try {
                 ouResp = await Zotero.HTTP.request('GET', ouUrl, {
-                  headers: { 'User-Agent': 'Zotero MCP Plugin' },
+                  headers: { 'User-Agent': 'Zotero Agent' },
                   responseType: 'text',
                   timeout: 20000,
                 } as any);
@@ -1899,7 +1899,7 @@ export class StreamableMCPServer {
               let restResp: any;
               try {
                 restResp = await Zotero.HTTP.request('GET', `https://api.crossref.org/works?${params.toString()}`, {
-                  headers: { 'User-Agent': 'Zotero MCP Plugin' },
+                  headers: { 'User-Agent': 'Zotero Agent' },
                   responseType: 'json',
                   timeout: 20000,
                 } as any);
@@ -1949,9 +1949,9 @@ export class StreamableMCPServer {
           }
 
           // ---------- Write gate (confirm=true) ----------
-          const writeEnabledFDI = Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true);
+          const writeEnabledFDI = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledFDI !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
 
           // Write to DOI field if supported, else append to Extra
@@ -2045,8 +2045,8 @@ export class StreamableMCPServer {
             break;
           }
           // write-gated
-          if (Zotero.Prefs.get('extensions.zotero.zotero-mcp-plugin.write.enabled', true) !== true) {
-            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero MCP Plugin → Preferences, and enable "Write Operations" to use this feature.');
+          if (Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true) !== true) {
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
           }
           const applied: string[] = [];
           for (const r of resolvedFields) {

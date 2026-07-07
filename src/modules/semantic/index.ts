@@ -1,7 +1,7 @@
 /**
  * Semantic Search Module
  *
- * Exports all semantic search components for use in the Zotero MCP Plugin.
+ * Exports all semantic search components for use in the Zotero Agent.
  */
 
 // Core services

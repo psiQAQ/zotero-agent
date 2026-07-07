@@ -12,9 +12,9 @@
 
 ### 第一步：安装 Zotero 插件
 
-1. 从 [Releases 页面](https://github.com/psiQAQ/zotero-agent/releases/) 下载最新的 `zotero-mcp-plugin.xpi`
+1. 从 [Releases 页面](https://github.com/psiQAQ/zotero-agent/releases/) 下载最新的 `zotero-agent.xpi`
 2. 在 Zotero 中通过 `工具 -> [齿轮图标] -> 从文件安装插件...` 安装
-3. 打开 `编辑 -> 设置 -> Zotero MCP Plugin`，启用以下权限：
+3. 打开 `编辑 -> 设置 -> Zotero Agent`，启用以下权限：
    1. 允许远程访问 (Allow Remote Access)
    2. 启用写操作 (Enable Write Operations)
    3. 运行 JavaScript (Run JavaScript / eval)
@@ -23,7 +23,7 @@
 
 ### 第二步：配置你的 AI 客户端
 
-从 `Zotero -> 编辑 -> 设置 -> Zotero MCP Plugin -> PSK` 获取你的 token。
+从 `Zotero -> 编辑 -> 设置 -> Zotero Agent -> PSK` 获取你的 token。
 
 #### Codex App
 
@@ -63,7 +63,7 @@ claude mcp add --transport http zotero-mcp http://127.0.0.1:23120/mcp `
 
 ### 第三步（可选）：推荐安装的联动插件
 
-这些插件与 Zotero MCP **并行**运行 —— 它们不并入本插件，但安装后，AI agent 可经 `run_javascript` 工具驱动它们（Zotero 特权上下文能触及任何已装插件的 API）。按你的工作流按需安装：
+这些插件与 Zotero Agent **并行**运行 —— 它们不并入本插件，但安装后，AI agent 可经 `run_javascript` 工具驱动它们（Zotero 特权上下文能触及任何已装插件的 API）。按你的工作流按需安装：
 
 | 插件 | 作用 | 与本插件 / agent 的配合方式 |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ claude mcp add --transport http zotero-mcp http://127.0.0.1:23120/mcp `
 
 在 Zotero 内置的开放获取 (open-access) 解析器之外，插件还可以把 Sci-Hub / Anna's Archive 作为兜底的 PDF 下载源。
 
-**在偏好面板启用。** 在 `编辑 -> 设置 -> Zotero MCP Plugin` 中打开 Sci-Hub / Anna's Archive 开关。开启后会出现一个源列表，已预填合理的默认值（多个 Sci-Hub 镜像 + Anna's Archive）；你可以增删源，或恢复默认。这些源注册为**仅手动触发**的解析器——只在你显式触发下载时才使用，绝不在后台自动访问。所有功能默认关闭。
+**在偏好面板启用。** 在 `编辑 -> 设置 -> Zotero Agent` 中打开 Sci-Hub / Anna's Archive 开关。开启后会出现一个源列表，已预填合理的默认值（多个 Sci-Hub 镜像 + Anna's Archive）；你可以增删源，或恢复默认。这些源注册为**仅手动触发**的解析器——只在你显式触发下载时才使用，绝不在后台自动访问。所有功能默认关闭。
 
 **下载。** 启用后，Zotero 自带的右键 **查找可用 PDF (Find Available PDF)** 会自动包含这些源：Zotero 先尝试免费源（arXiv / 开放获取），只有在需要时才回落到灰色源。你也可以通过 MCP 工具 `manage_pdf_resolvers`（启用/禁用、管理源列表）和 `find_missing_pdfs`（审计缺 PDF 的条目并下载）来驱动。
 
@@ -117,7 +117,7 @@ npm run build
 npm run start
 
 # 或手动安装构建好的 .xpi 文件
-# xpi 文件会生成在 "./.scaffold/build/zotero-mcp-plugin.xpi"
+# xpi 文件会生成在 "./.scaffold/build/zotero-agent.xpi"
 npm run build
 ```
 

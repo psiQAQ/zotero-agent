@@ -1,5 +1,5 @@
 /**
- * Intelligent Content Processor for Zotero MCP Plugin
+ * Intelligent Content Processor for Zotero Agent
  * Implements advanced algorithms for content importance scoring and intelligent extraction
  * Based on 2024 research: TF-IDF + Improved TextRank + Position Weighting
  */

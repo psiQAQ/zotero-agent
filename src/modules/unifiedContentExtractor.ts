@@ -1,5 +1,5 @@
 /**
- * Unified Content Extractor for Zotero MCP Plugin
+ * Unified Content Extractor for Zotero Agent
  * 
  * This replaces the overlapping functionality of:
  * - get_item_pdf_content
