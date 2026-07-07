@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-07-07
+
 ### 新增
 - eval 边界单元测试:timeout clamp、UTF-16 surrogate 截断、循环引用返回值;文档化长任务断连语义
 - 文献库导入 + 去重 + 中文重打标的执行计划与完成记录(`docs/superpowers/plans/2026-07-06-library-import-retag-plan.md`)
