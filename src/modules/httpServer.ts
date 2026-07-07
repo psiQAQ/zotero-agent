@@ -806,7 +806,7 @@ private async getCapabilities() {
       name: "Zotero Agent",
       version: "1.1.0",
       description: "Model Context Protocol integration for Zotero research management",
-      author: "Zotero Agent Team",
+      author: "psiQAQ",
       repository: "https://github.com/psiQAQ/zotero-agent",
       documentation: "https://github.com/psiQAQ/zotero-agent#readme"
     },
