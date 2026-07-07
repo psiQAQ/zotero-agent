@@ -74,10 +74,7 @@ http_headers = { Authorization = "Bearer ${psk || PSK_PLACEHOLDER}", "Content-Ty
         }
       }),
       renderConfig: (port: number, serverName = "zotero-mcp", psk?: string) => {
-        return `claude mcp add --transport http ${serverName} http://127.0.0.1:${port}/mcp \\
-  --scope user \\
-  --header "Authorization: Bearer ${psk || PSK_PLACEHOLDER}" \\
-  --header "Content-Type: application/json"`;
+        return `claude mcp add --transport http ${serverName} http://127.0.0.1:${port}/mcp --scope user --header "Authorization: Bearer ${psk || PSK_PLACEHOLDER}" --header "Content-Type: application/json"`;
       },
       configLanguage: "bash",
       getInstructions: (port: number = 23120) => [
@@ -273,10 +270,7 @@ http_headers = { Authorization = "Bearer ${psk || PSK_PLACEHOLDER}", "Content-Ty
       }),
       getInstructions: (port: number = 23120) => [
         "1. Use Qwen Code's MCP add command (PSK from the plugin preferences panel):",
-        `   qwen mcp add zotero-mcp http://127.0.0.1:${port}/mcp -t http \\`,
-        "     -H 'Authorization: Bearer <YOUR_PSK>' \\",
-        "     -H 'Content-Type: application/json' \\",
-        "     --trust",
+        `   qwen mcp add zotero-mcp http://127.0.0.1:${port}/mcp -t http -H 'Authorization: Bearer <YOUR_PSK>' -H 'Content-Type: application/json' --trust`,
         "",
         "2. Verify the server was added:",
         "   qwen mcp list",

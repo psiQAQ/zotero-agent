@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-07-07
+
+### Changed
+- CLI commands in client config generator now use single-line format (Claude Code, Qwen Code)
+
 ## [2.0.0] - 2026-07-07
 
 First public release. Relative to upstream v1.5.0 (27 tools), tools expanded from 27 → **42**, with PSK authentication + security model + `run_javascript` as core additions.
