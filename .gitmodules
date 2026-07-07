@@ -1,0 +1,52 @@
+[submodule "refs/ZotSeek"]
+	path = refs/AI-plugins/ZotSeek
+	url = https://github.com/introfini/ZotSeek.git
+[submodule "refs/mcp-server-zotero-dev"]
+	path = refs/AI-plugins/mcp-server-zotero-dev
+	url = https://github.com/introfini/mcp-server-zotero-dev.git
+[submodule "refs/zotero-mcp-54yyyu"]
+	path = refs/AI-plugins/zotero-mcp-54yyyu
+	url = https://github.com/54yyyu/zotero-mcp.git
+[submodule "refs/zotero-mcp-cookjohn"]
+	path = refs/AI-plugins/zotero-mcp-cookjohn
+	url = https://github.com/cookjohn/zotero-mcp.git
+[submodule "refs/papersgpt-for-zotero"]
+	path = refs/AI-plugins/papersgpt-for-zotero
+	url = https://github.com/papersgpt/papersgpt-for-zotero.git
+[submodule "refs/pdf-download/zotero-scipdf"]
+	path = refs/pdf-download/zotero-scipdf
+	url = https://github.com/syt2/zotero-scipdf.git
+[submodule "refs/pdf-download/pdferret"]
+	path = refs/pdf-download/pdferret
+	url = https://github.com/urschrei/pdferret.git
+[submodule "refs/pdf-download/sanfy008-scihub"]
+	path = refs/pdf-download/sanfy008-scihub
+	url = https://github.com/sanfy008/scihub.git
+[submodule "refs/pdf-download/zotero7-scidb"]
+	path = refs/pdf-download/zotero7-scidb
+	url = https://github.com/0xc1c4da/zotero7-scidb.git
+[submodule "refs/metadata-enrich/zotero-metadata-hunter"]
+	path = refs/metadata-enrich/zotero-metadata-hunter
+	url = https://github.com/federicotorrielli/zotero-metadata-hunter.git
+[submodule "refs/metadata-enrich/zotero-zotadata"]
+	path = refs/metadata-enrich/zotero-zotadata
+	url = https://github.com/ydeng11/zotero-zotadata.git
+[submodule "refs/metadata-enrich/ZotMeta"]
+	path = refs/metadata-enrich/ZotMeta
+	url = https://github.com/RoadToDream/ZotMeta.git
+[submodule "refs/metadata-enrich/zotero-format-metadata"]
+	path = refs/metadata-enrich/zotero-format-metadata
+	url = https://github.com/northword/zotero-format-metadata.git
+	ignore = dirty
+[submodule "refs/metadata-enrich/zotero-doi-fix"]
+	path = refs/metadata-enrich/zotero-doi-fix
+	url = https://github.com/pandaAIGC/zotero-doi-fix.git
+[submodule "refs/metadata-enrich/zotero-doi-finder"]
+	path = refs/metadata-enrich/zotero-doi-finder
+	url = https://github.com/dnnunn/zotero-doi-finder.git
+[submodule "refs/metadata-enrich/jasminum"]
+	path = refs/metadata-enrich/jasminum
+	url = https://github.com/l0o0/jasminum.git
+[submodule "refs/metadata-enrich/zotero-updateifsE"]
+	path = refs/metadata-enrich/zotero-updateifsE
+	url = https://github.com/redleafnew/zotero-updateifsE.git

@@ -1,0 +1,66 @@
+{
+  "name": "zotero-mcp-plugin",
+  "type": "module",
+  "version": "1.8.2",
+  "description": "Zotero MCP Plugin",
+  "config": {
+    "addonName": "Zotero MCP Plugin",
+    "addonID": "zotero-mcp-plugin@autoagent.my",
+    "addonRef": "zotero-mcp-plugin",
+    "addonInstance": "ZoteroMCP",
+    "prefsPrefix": "extensions.zotero.zotero-mcp-plugin"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/psiQAQ/zotero-agent.git"
+  },
+  "author": "cookjohn",
+  "bugs": {
+    "url": "https://github.com/psiQAQ/zotero-agent/issues"
+  },
+  "homepage": "https://github.com/psiQAQ/zotero-agent#readme",
+  "license": "MIT",
+  "scripts": {
+    "start": "zotero-plugin serve",
+    "build": "zotero-plugin build && tsc --noEmit",
+    "lint:check": "prettier --check . && eslint .",
+    "lint:fix": "prettier --write . && eslint . --fix",
+    "release": "npm version patch --force -m \"Release v%s\" && git push --follow-tags",
+    "release:beta": "npm version prepatch --preid beta --force -m \"Release v%s\" && git push --follow-tags",
+    "prepare-release": "node scripts/prepare-release.js",
+    "test": "zotero-plugin test",
+    "test:unit": "node scripts/unit-test.mjs",
+    "update-deps": "npm update --save"
+  },
+  "dependencies": {
+    "zotero-plugin-toolkit": "^5.1.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.2.0",
+    "@zotero-plugin/eslint-config": "^0.6.7",
+    "chai": "^5.2.1",
+    "eslint": "^9.32.0",
+    "mocha": "^11.7.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "zotero-plugin-scaffold": "^0.8.6",
+    "zotero-types": "^4.1.2"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "endOfLine": "lf",
+    "overrides": [
+      {
+        "files": [
+          "*.xhtml"
+        ],
+        "options": {
+          "htmlWhitespaceSensitivity": "css"
+        }
+      }
+    ]
+  }
+}
