@@ -15,7 +15,7 @@ export default defineConfig({
     "https://github.com/{{owner}}/{{repo}}/releases/download/v{{version}}/{{xpiName}}.xpi",
 
   build: {
-    assets: ["addon/**/*.*"],
+    assets: ["addon/**/*.*", "!addon/content/icons/zotero-agent-icon-raw.png"],
     define: {
       ...pkg.config,
       author: pkg.author,
