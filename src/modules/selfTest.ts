@@ -420,6 +420,29 @@ registerSuite("protocol", async (t) => {
     t.assertTrue("dryRun" in r || "needsDoi" in r, "must return dryRun patch or needsDoi");
   });
 
+  await t.scenario("upgrade_preprints dry-run returns patch preview", async () => {
+    // Bogus itemKeys scope → zero candidates → zero network calls; asserts the dry-run shape.
+    const r = JSON.parse((await mcpPost(rpc("tools/call", { name: "upgrade_preprints", arguments: { itemKeys: ["NOSUCHKEY1"] } }))).json.result.content[0].text);
+    t.assertEq(r.dryRun, true, "must never write implicitly");
+    t.assertEq(r.checked, 0, "bogus scope yields zero checked");
+    t.assertTrue(Array.isArray(r.patches), "must return a patches array");
+  });
+
+  await t.scenario("find_doi repair mode reports alive/dead structurally", async () => {
+    const s = JSON.parse((await mcpPost(rpc("tools/call", { name: "search_library", arguments: { q: "learning", limit: 5 } }))).json.result.content[0].text);
+    const it = (s.results ?? []).find((r: any) => r.DOI) || (s.results ?? [])[0];
+    if (!it) t.skip("no items");
+    const resp = await mcpPost(rpc("tools/call", { name: "find_doi", arguments: { itemKey: it.key, mode: "repair" } }));
+    if (resp.json?.result?.isError) {
+      const text = resp.json.result.content?.[0]?.text ?? "";
+      if (/unreachable|failed/i.test(text)) t.skip("network unreachable");
+      throw new Error(`unexpected tool error: ${text.slice(0, 200)}`);
+    }
+    const r = JSON.parse(resp.json.result.content[0].text);
+    // Item with DOI → {alive: true|false|"unknown"}; item without DOI → {needsDoi}.
+    t.assertTrue("alive" in r || "needsDoi" in r, "must report alive verdict or needsDoi");
+  });
+
   await t.scenario("manage_pdf_resolvers enable/disable toggles scihub sources", async () => {
     const writeOn = Zotero.Prefs.get(PREF + "write.enabled", true) === true;
     if (!writeOn) t.skip("write disabled");

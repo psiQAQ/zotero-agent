@@ -26,7 +26,7 @@ import { runUserJavaScript } from "./evalTool";
 import { negotiateProtocolVersion, LATEST_PROTOCOL_VERSION } from './mcpProtocol';
 import { config } from "../../package.json";
 import { reloadPlugin, installPluginFromUrl } from "./devTools";
-import { importByIdentifier, findMissingPdfs, normalizeStringList, importBibliography } from "./importService";
+import { importByIdentifier, findMissingPdfs, normalizeStringList, importBibliography, resolveScopeItems } from "./importService";
 import { checkRetractions, findRelatedPapers } from "./scholarlyService";
 import { synthesizeAnnotations } from "./synthesisService";
 import { findDuplicates, mergeDuplicates, batchUpdateTags } from "./maintenanceService";
@@ -35,6 +35,7 @@ import { syncScihubResolvers, parseSources, DEFAULT_SCIHUB_SOURCES } from "./sci
 import { extractIdentifiers } from "./pdfIdentifier";
 import { titleSimilarity, MATCH_THRESHOLD } from './titleSimilarity';
 import { cslToZoteroFields, computeEnrichPatch, reconstructAbstract, shouldReplaceCreators, FILL_MISSING_FIELDS } from './metadataMerge';
+import { isPreprintCandidate, extractArxivId, findPublishedVersion, classifyHandleResponse } from './preprintService';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -1157,12 +1158,13 @@ export class StreamableMCPServer {
       },
       {
         name: 'find_doi',
-        description: 'Reverse-lookup a DOI for an item that lacks one, via CrossRef (OpenURL then REST title+author+year search, with title-similarity ≥0.86 matching). DRY-RUN by default: returns the best candidate + score without writing. Set confirm=true to write it into the DOI field (backs up any prior DOI into Extra). Requires write.enabled to confirm. Example: {"itemKey":"ABCD1234"}',
+        description: 'Reverse-lookup a DOI for an item that lacks one, via CrossRef (OpenURL then REST title+author+year search, with title-similarity ≥0.86 matching). mode:"repair" instead validates an existing DOI against the Handle System (doi.org) and proposes a replacement if it is dead. DRY-RUN by default: returns the best candidate + score without writing. Set confirm=true to write it into the DOI field (backs up any prior DOI into Extra). Requires write.enabled to confirm. Example: {"itemKey":"ABCD1234"}',
         inputSchema: {
           type: 'object',
           properties: {
             itemKey: { type: 'string' },
             libraryID: { type: 'number' },
+            mode: { type: 'string', enum: ['find', 'repair'], description: "find (default): reverse-lookup a DOI for items lacking one. repair: validate the item's existing DOI against doi.org's Handle API; if dead (404/responseCode 100), reverse-lookup a replacement and propose it (old DOI preserved in extra on confirm); if the check is inconclusive, returns alive:\"unknown\" and proposes nothing." },
             confirm: { type: 'boolean', description: 'false (default): return candidate only. true: write the matched DOI (write.enabled required).' },
           },
           required: ['itemKey'],
@@ -1180,6 +1182,20 @@ export class StreamableMCPServer {
             confirm: { type: 'boolean', description: 'false (default): dry-run patch. true: write (write.enabled required).' },
           },
           required: ['itemKey'],
+        },
+      },
+      {
+        name: 'upgrade_preprints',
+        description: 'Scan a scope for preprints (arXiv etc.), look up their published journal/conference version via OpenAlex title search, and upgrade the item: DOI, venue, date, itemType. Dry-run by default (returns per-item patch preview); confirm:true applies (requires write.enabled). Old values are preserved in the extra field (previous_doi / previous_version). Always reads back after write. Example: {"collectionKey":"ABCD1234"}',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            collectionKey: { type: 'string', description: 'Scope: a collection (top-level items).' },
+            itemKeys: { type: 'array', items: { type: 'string' }, description: 'Scope: explicit item keys.' },
+            confirm: { type: 'boolean', description: 'false (default) = preview patches only; true = write (write.enabled required).' },
+            limit: { type: 'number', description: 'Max items to check per call (default 20 — OpenAlex politeness, cap 100).' },
+            libraryID: { type: 'number' },
+          },
         },
       },
       {
@@ -1867,9 +1883,44 @@ export class StreamableMCPServer {
           if (!itemIDFD) throw new Error(`Item not found: ${args.itemKey}`);
           const itemFD = await Zotero.Items.getAsync(itemIDFD);
 
-          // Skip if item already has a DOI
+          // ponytail: prefer Zotero.Utilities.cleanDOI if available; local fallback
+          const cleanDoiFD = (d: string): string => {
+            if (!d) return '';
+            const utils = Zotero.Utilities as any;
+            if (typeof utils.cleanDOI === 'function') return utils.cleanDOI(String(d));
+            return String(d).replace(/^\s*doi:\s*/i, '').replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').trim();
+          };
+
+          const repairModeFD = args?.mode === 'repair';
           const existingDoiFD = String(itemFD.getField('DOI') ?? '').trim();
-          if (existingDoiFD) { result = { alreadyHasDoi: existingDoiFD }; break; }
+
+          // Skip if item already has a DOI (find mode only)
+          if (!repairModeFD && existingDoiFD) { result = { alreadyHasDoi: existingDoiFD }; break; }
+
+          const deadDoiFD = repairModeFD ? (cleanDoiFD(existingDoiFD) || existingDoiFD) : '';
+          if (repairModeFD) {
+            if (!existingDoiFD) { result = { needsDoi: true, hint: 'Item has no DOI — use mode:"find".' }; break; }
+            // Recon 2026-07-08: HEAD-to-doi.org is unusable in Zotero (fetch with redirect:"manual"
+            // yields {status:0, type:"opaqueredirect"} for live DOIs). The Handle System REST API
+            // gives an unambiguous verdict without hitting the publisher site.
+            let handleStatusFD = -1;
+            let handleBodyFD: any = null;
+            try {
+              const handleRespFD = await fetch(`https://doi.org/api/handles/${encodeURIComponent(deadDoiFD)}`);
+              handleStatusFD = handleRespFD.status;
+              try { handleBodyFD = await handleRespFD.json(); } catch { /* non-JSON body → unknown */ }
+            } catch (e: any) {
+              result = { doi: deadDoiFD, alive: 'unknown', reason: `handle lookup failed: ${e?.message ?? e} — no conclusion, no replacement proposed` };
+              break;
+            }
+            const verdictFD = classifyHandleResponse(handleStatusFD, handleBodyFD);
+            if (verdictFD === 'alive') { result = { doi: deadDoiFD, alive: true }; break; }
+            if (verdictFD === 'unknown') {
+              result = { doi: deadDoiFD, alive: 'unknown', reason: `handle API returned HTTP ${handleStatusFD}, responseCode ${handleBodyFD?.responseCode ?? 'n/a'} — no conclusion, no replacement proposed` };
+              break;
+            }
+            // dead → fall through to the CrossRef reverse-lookup below for a replacement candidate
+          }
 
           const titleFD = String(itemFD.getField('title') ?? '').trim();
           if (!titleFD) throw new Error('Item has no title');
@@ -1879,18 +1930,12 @@ export class StreamableMCPServer {
           const rawDateFD = String(itemFD.getField('date') ?? '');
           const yearFD = (rawDateFD.match(/\d{4}/) ?? [])[0] ?? '';
 
-          // ponytail: prefer Zotero.Utilities.cleanDOI if available; local fallback
-          const cleanDoiFD = (d: string): string => {
-            if (!d) return '';
-            const utils = Zotero.Utilities as any;
-            if (typeof utils.cleanDOI === 'function') return utils.cleanDOI(String(d));
-            return String(d).replace(/^\s*doi:\s*/i, '').replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').trim();
-          };
-
           // ---------- Tier 1: CrossRef OpenURL ----------
+          // Repair mode skips OpenURL: the context object carries the item's (dead) DOI,
+          // which CrossRef would resolve straight back to — a useless self-match.
           let openUrlDoiFD: string | null = null;
           const openURL = (Zotero as any).OpenURL;
-          if (openURL?.createContextObject) {
+          if (!repairModeFD && openURL?.createContextObject) {
             const ctx = openURL.createContextObject(itemFD, '1.0');
             if (ctx) {
               const ouUrl = `https://www.crossref.org/openurl?pid=zotero-agent&${ctx}&multihit=true`;
@@ -1947,7 +1992,9 @@ export class StreamableMCPServer {
                 doi: cleanDoiFD(String(ci.DOI ?? '')),
                 title: String(ci.title?.[0] ?? ''),
                 score: titleSimilarity(titleFD, String(ci.title?.[0] ?? '')),
-              }));
+              // Repair mode: CrossRef metadata for a dead DOI often still exists — never
+              // propose the dead DOI itself as its own replacement.
+              })).filter((c) => !repairModeFD || c.doi.toLowerCase() !== deadDoiFD.toLowerCase());
             };
 
             const probesFD = yearFD ? [true, false] : [false];
@@ -1970,7 +2017,10 @@ export class StreamableMCPServer {
               .sort((a, b) => b.score - a.score)
               .filter((c, i, arr) => arr.findIndex(x => x.doi === c.doi) === i)
               .slice(0, 3);
-            result = { found: false, bestScore: top3[0]?.score ?? 0, candidates: top3.map(c => ({ doi: c.doi, title: c.title, score: c.score })) };
+            const noMatch = { found: false, bestScore: top3[0]?.score ?? 0, candidates: top3.map(c => ({ doi: c.doi, title: c.title, score: c.score })) };
+            result = repairModeFD
+              ? { doi: deadDoiFD, alive: false, ...noMatch, hint: 'DOI is dead but no confident replacement was found — fix manually.' }
+              : noMatch;
             break;
           }
 
@@ -1980,7 +2030,9 @@ export class StreamableMCPServer {
           const foundViaFD = openUrlDoiFD ? 'crossref-openurl' : bestRestFD!.via;
 
           if (!args?.confirm) {
-            result = { found: true, doi: foundDoiFD, score: foundScoreFD, matchedTitle: foundMatchedTitleFD, via: foundViaFD, dryRun: true, confirmWith: 'confirm:true' };
+            result = repairModeFD
+              ? { doi: deadDoiFD, alive: false, candidate: { doi: foundDoiFD, score: foundScoreFD, matchedTitle: foundMatchedTitleFD, via: foundViaFD }, dryRun: true, confirmWith: 'confirm:true' }
+              : { found: true, doi: foundDoiFD, score: foundScoreFD, matchedTitle: foundMatchedTitleFD, via: foundViaFD, dryRun: true, confirmWith: 'confirm:true' };
             break;
           }
 
@@ -1988,6 +2040,13 @@ export class StreamableMCPServer {
           const writeEnabledFDI = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
           if (writeEnabledFDI !== true) {
             throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
+          }
+
+          // Repair mode: preserve the dead DOI in extra before replacing (append, never overwrite)
+          if (repairModeFD) {
+            const extraRP = String(itemFD.getField('extra') ?? '');
+            const backupRP = `previous_doi: ${existingDoiFD}`;
+            itemFD.setField('extra', extraRP ? `${extraRP}\n${backupRP}` : backupRP);
           }
 
           // Write to DOI field if supported, else append to Extra
@@ -2007,7 +2066,9 @@ export class StreamableMCPServer {
           const writtenDoi = String(rereadFD.getField('DOI') ?? '').trim()
             || (String(rereadFD.getField('extra') ?? '').match(/^\s*DOI:\s*(.+)$/im)?.[1]?.trim() ?? '');
 
-          result = { written: true, doi: foundDoiFD, verified: writtenDoi === foundDoiFD, itemKey: args.itemKey };
+          result = repairModeFD
+            ? { written: true, doi: foundDoiFD, previousDoi: existingDoiFD, verified: writtenDoi === foundDoiFD, itemKey: args.itemKey }
+            : { written: true, doi: foundDoiFD, verified: writtenDoi === foundDoiFD, itemKey: args.itemKey };
           break;
         }
 
@@ -2093,6 +2154,101 @@ export class StreamableMCPServer {
           await item.saveTx();
           const reread = await Zotero.Items.getAsync(itemID);
           result = { enriched: true, applied, skippedForType, itemKey: reread.key, abstractLen: (reread.getField('abstractNote') || '').length };
+          break;
+        }
+
+        case 'upgrade_preprints': {
+          const libIDUP = args?.libraryID ?? Zotero.Libraries.userLibraryID;
+          const itemKeysUP = normalizeStringList(args?.itemKeys);
+          const scopeItemsUP = await resolveScopeItems(libIDUP, {
+            collectionKey: args?.collectionKey,
+            itemKeys: itemKeysUP.length ? itemKeysUP : undefined,
+          });
+          const factsOfUP = (i: any) => ({
+            itemType: String(Zotero.ItemTypes.getName(i.itemTypeID) || ''),
+            url: String(i.getField('url') || ''),
+            extra: String(i.getField('extra') || ''),
+            DOI: String(i.getField('DOI') || ''),
+          });
+          const limitUP = Math.max(1, Math.min(Number(args?.limit ?? 20), 100));
+          const candsUP = scopeItemsUP.filter((i: any) => isPreprintCandidate(factsOfUP(i))).slice(0, limitUP);
+          const patchesUP: any[] = [];
+          for (const it of candsUP) {
+            const fUP = factsOfUP(it);
+            const aidUP = extractArxivId(fUP.DOI) || extractArxivId(fUP.url) || extractArxivId(fUP.extra) || '';
+            const titleUP = String(it.getField('title') || '').trim();
+            if (!titleUP) {
+              patchesUP.push({ key: it.key, arxivId: aidUP || null, found: false, reason: 'no title — cannot title-search OpenAlex' });
+              continue;
+            }
+            let pubUP: any = null;
+            try {
+              pubUP = await findPublishedVersion(titleUP, aidUP);
+            } catch (e: any) {
+              patchesUP.push({ key: it.key, title: titleUP, arxivId: aidUP || null, found: false, error: `OpenAlex unreachable: ${e?.message ?? e}` });
+              continue;
+            }
+            patchesUP.push({
+              key: it.key,
+              title: titleUP,
+              arxivId: aidUP || null,
+              found: !!pubUP,
+              ...(pubUP ? {
+                patch: { DOI: pubUP.doi, publicationTitle: pubUP.venue, date: pubUP.year, itemType: 'journalArticle' },
+                openalexId: pubUP.openalexId,
+              } : {}),
+            });
+          }
+          if (args?.confirm !== true) {
+            result = {
+              dryRun: true,
+              checked: candsUP.length,
+              upgradable: patchesUP.filter((p) => p.found).length,
+              patches: patchesUP,
+              confirmWith: 'confirm:true',
+            };
+            break;
+          }
+          const writeEnabledUP = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
+          if (writeEnabledUP !== true) {
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
+          }
+          const writtenUP: any[] = [];
+          for (const p of patchesUP) {
+            if (!p.found) continue;
+            const iidUP = Zotero.Items.getIDFromLibraryAndKey(libIDUP, p.key);
+            if (!iidUP) { writtenUP.push({ key: p.key, written: false, error: 'item not found on write pass' }); continue; }
+            const itUP = await Zotero.Items.getAsync(iidUP);
+            const oldDoiUP = String(itUP.getField('DOI') || '').trim();
+            const oldExtraUP = String(itUP.getField('extra') || '');
+            try {
+              const jaTypeID = Zotero.ItemTypes.getID('journalArticle');
+              if (jaTypeID && itUP.itemTypeID !== jaTypeID) itUP.setType(jaTypeID);
+              // Back up old values into extra — append, never overwrite existing extra content.
+              const backupUP = `previous_doi: ${oldDoiUP}\nprevious_version: preprint`;
+              itUP.setField('extra', oldExtraUP ? `${oldExtraUP}\n${backupUP}` : backupUP);
+              itUP.setField('DOI', p.patch.DOI);
+              if (p.patch.publicationTitle) itUP.setField('publicationTitle', p.patch.publicationTitle);
+              if (p.patch.date) itUP.setField('date', p.patch.date);
+              await itUP.saveTx();
+              const rereadUP = await Zotero.Items.getAsync(iidUP);
+              const gotDoiUP = String(rereadUP.getField('DOI') || '').trim();
+              writtenUP.push({
+                key: p.key,
+                written: true,
+                doi: p.patch.DOI,
+                verified: gotDoiUP === p.patch.DOI,
+                doiChanged: gotDoiUP !== oldDoiUP,
+              });
+            } catch (e: any) {
+              writtenUP.push({ key: p.key, written: false, error: e?.message ?? String(e) });
+            }
+          }
+          result = {
+            checked: candsUP.length,
+            upgraded: writtenUP.filter((w) => w.written && w.verified).length,
+            results: writtenUP,
+          };
           break;
         }
 

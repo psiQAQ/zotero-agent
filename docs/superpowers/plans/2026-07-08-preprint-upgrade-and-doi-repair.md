@@ -18,7 +18,7 @@
 - Create: `src/modules/preprintService.ts`
 - Test: `test/preprintService.test.cjs`
 
-- [ ] **Step 1: 写失败单测**
+- [x] **Step 1: 写失败单测**
 
 ```js
 // test/preprintService.test.cjs（模块加载方式照抄 test/metadataMerge.test.cjs 的现有约定）
@@ -39,11 +39,11 @@ assert.strictEqual(extractArxivId("https://example.com"), null);
 console.log("preprintService: ok");
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test:unit` → Expected: FAIL（模块不存在）
 
-- [ ] **Step 3: 实现纯函数**
+- [x] **Step 3: 实现纯函数**
 
 ```ts
 // src/modules/preprintService.ts
@@ -69,9 +69,9 @@ export function isPreprintCandidate(f: ItemFacts): boolean {
 }
 ```
 
-- [ ] **Step 4: 跑测试确认通过** → `npm run test:unit` PASS
+- [x] **Step 4: 跑测试确认通过** → `npm run test:unit` PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/preprintService.ts test/preprintService.test.cjs
@@ -85,7 +85,7 @@ git commit -m "feat: preprint candidate detection (pure functions + tests)"
 **Files:**
 - Modify: `src/modules/preprintService.ts`
 
-- [ ] **Step 1: 实现 findPublishedVersion**
+- [x] **Step 1: 实现 findPublishedVersion**（按侦察结果走标题搜索路线：`findPublishedVersion(title, arxivId)` + 纯函数 `pickPublishedVersion(results, title)` 以 fixture 单测覆盖判据）
 
 OpenAlex 对 arXiv 收录有两条路：按 arXiv DOI 查 work，其 `primary_location.version` 若为 `submittedVersion`，看 `locations[]` 里有没有 `version:"publishedVersion"` 的来源；或者用 work 的 `ids.doi` 与 `related_works`。**实现前先用 2 个真实 arXiv id 手测 API 响应确定字段路径**（curl 或 fetch 均可），把确认的 JSON 路径写成注释。
 
@@ -123,12 +123,12 @@ export async function findPublishedVersion(arxivId: string): Promise<PublishedVe
    - **推荐判据（首选）**：改用 Handle System REST API `GET https://doi.org/api/handles/<doi>`——活 = HTTP 200 且 `body.responseCode === 1`；死 = HTTP 404 且 `responseCode === 100`（两例实测均符合）。语义明确、不依赖 redirect 行为、不会真的打到出版商站点。
    - 若坚持 HEAD：`resp.type === "opaqueredirect"` → 活；`resp.status === 404 || resp.status === 410` → 死；其余（5xx/网络错误）→ unknown，不下结论、不提议替换。
 
-- [ ] **Step 2: 真机手测**
+- [ ] **Step 2: 真机手测**（跳过——留给集成阶段，见留验清单）
 
 经 `run_javascript` 对库里 2 个已知有正式版的 arXiv 条目跑 `findPublishedVersion`（先 build+deploy，或直接把函数体粘进 run_javascript 验证字段路径）。
 Expected: 返回非 arXiv 的 DOI + venue；对纯 preprint（无正式版）返回 null。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/modules/preprintService.ts
@@ -142,7 +142,7 @@ git commit -m "feat: OpenAlex published-version lookup for arXiv preprints"
 **Files:**
 - Modify: `src/modules/streamableMCPServer.ts`（tools 数组 + case handler）
 
-- [ ] **Step 1: 工具 schema**
+- [x] **Step 1: 工具 schema**
 
 ```ts
 {
@@ -161,7 +161,7 @@ git commit -m "feat: OpenAlex published-version lookup for arXiv preprints"
 },
 ```
 
-- [ ] **Step 2: handler（形状参照 `case 'enrich_item_metadata'`）**
+- [x] **Step 2: handler（形状参照 `case 'enrich_item_metadata'`）**
 
 ```ts
 case 'upgrade_preprints': {
@@ -186,11 +186,11 @@ case 'upgrade_preprints': {
 }
 ```
 
-- [ ] **Step 3: build + 部署 + 真机验证**
+- [ ] **Step 3: build + 部署 + 真机验证**（build 已本地通过；部署+真机验证跳过——留给集成阶段，见留验清单）
 
 `npm run build && node scripts/deploy-live.mjs`。dry-run 扫一个 arXiv 密集的集合，人工核对 2 条 patch 是否指向正确正式版（DOI 在浏览器里打开确认），再对**其中 1 条**confirm 写回、回读校验、并在 Zotero UI 里目检。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts
@@ -204,7 +204,7 @@ git commit -m "feat: upgrade_preprints tool (OpenAlex published-version upgrade,
 **Files:**
 - Modify: `src/modules/streamableMCPServer.ts`（`case 'find_doi'` handler，1827 行附近；schema 加 `mode` 参数）
 
-- [ ] **Step 1: schema 加参数**
+- [x] **Step 1: schema 加参数**
 
 在 `find_doi` 的 inputSchema.properties 增加：
 
@@ -212,7 +212,7 @@ git commit -m "feat: upgrade_preprints tool (OpenAlex published-version upgrade,
 mode: { type: 'string', enum: ['find', 'repair'], description: "find (default): reverse-lookup a DOI for items lacking one. repair: validate the item's existing DOI against doi.org; if dead (404/410), reverse-lookup a replacement and propose it (old DOI preserved in extra on confirm)." },
 ```
 
-- [ ] **Step 2: repair 分支实现**
+- [x] **Step 2: repair 分支实现**（按侦察结果改用 Handle System API `GET doi.org/api/handles/<doi>`：200+responseCode 1=活；404+responseCode 100=死；其余 unknown 不下结论。repair 跳过 OpenURL tier 且候选过滤掉死 DOI 自身，防自匹配）
 
 ```ts
 if (args?.mode === 'repair') {
@@ -228,11 +228,11 @@ if (args?.mode === 'repair') {
 
 注意：doi.org 对 HEAD 的行为（3xx=活）先用 1 个真实 DOI + 1 个伪造 DOI 手测确认，再定 `alive` 判据；机构代理网络下可能全 200，判据要以实测为准。
 
-- [ ] **Step 3: build + 真机验证**
+- [ ] **Step 3: build + 真机验证**（build 已本地通过；真机验证跳过——留给集成阶段，见留验清单）
 
 对一个正常条目跑 `mode:"repair"` 应报 `alive:true`；手工把一个测试条目的 DOI 改错一位再跑，应给出 candidate（不写库），confirm 后替换并回读。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts
@@ -246,18 +246,18 @@ git commit -m "feat: find_doi repair mode (validate dead DOIs, propose replaceme
 **Files:**
 - Modify: `src/modules/selfTest.ts`、`README.md`、`CLAUDE.md`（工具数）
 
-- [ ] **Step 1: 两个 selfTest 场景（都走 dry-run，不依赖网络成功——网络失败时接受结构化 unreachable）**
+- [x] **Step 1: 两个 selfTest 场景（都走 dry-run，不依赖网络成功——网络失败时接受结构化 unreachable）**（代码已写入 selfTest.ts，真机执行留给集成阶段）
 
 ```ts
 await t.scenario("upgrade_preprints dry-run returns patch preview", async () => { /* 空集合 scope → checked:0, dryRun:true */ });
 await t.scenario("find_doi repair mode reports alive/dead structurally", async () => { /* 有 DOI 的条目 → {alive} 或 unreachable 结构 */ });
 ```
 
-- [ ] **Step 2: 全量回归**
+- [ ] **Step 2: 全量回归**（跳过——部署与真机回归留给集成阶段，见留验清单）
 
 `npm run build && node scripts/deploy-live.mjs` → `Zotero.ZoteroAgentSelfTest.run('protocol')` → 全 passed。
 
-- [ ] **Step 3: README 工具表加 `upgrade_preprints`、`find_doi` 描述更新 repair；§2 表格 metadata TODO 打勾。Commit**
+- [ ] **Step 3: README 工具表加 `upgrade_preprints`、`find_doi` 描述更新 repair；§2 表格 metadata TODO 打勾。Commit**（README/CLAUDE.md 修改按执行约束跳过，留给集成阶段；selfTest.ts 已单独 commit）
 
 ```bash
 git add src/modules/selfTest.ts README.md CLAUDE.md
