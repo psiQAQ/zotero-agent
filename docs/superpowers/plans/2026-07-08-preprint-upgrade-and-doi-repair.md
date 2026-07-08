@@ -142,7 +142,7 @@ git commit -m "feat: OpenAlex published-version lookup for arXiv preprints"
 **Files:**
 - Modify: `src/modules/streamableMCPServer.ts`（tools 数组 + case handler）
 
-- [ ] **Step 1: 工具 schema**
+- [x] **Step 1: 工具 schema**
 
 ```ts
 {
@@ -161,7 +161,7 @@ git commit -m "feat: OpenAlex published-version lookup for arXiv preprints"
 },
 ```
 
-- [ ] **Step 2: handler（形状参照 `case 'enrich_item_metadata'`）**
+- [x] **Step 2: handler（形状参照 `case 'enrich_item_metadata'`）**
 
 ```ts
 case 'upgrade_preprints': {
@@ -186,11 +186,11 @@ case 'upgrade_preprints': {
 }
 ```
 
-- [ ] **Step 3: build + 部署 + 真机验证**
+- [ ] **Step 3: build + 部署 + 真机验证**（build 已本地通过；部署+真机验证跳过——留给集成阶段，见留验清单）
 
 `npm run build && node scripts/deploy-live.mjs`。dry-run 扫一个 arXiv 密集的集合，人工核对 2 条 patch 是否指向正确正式版（DOI 在浏览器里打开确认），再对**其中 1 条**confirm 写回、回读校验、并在 Zotero UI 里目检。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts

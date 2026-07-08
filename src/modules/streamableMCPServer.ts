@@ -26,7 +26,7 @@ import { runUserJavaScript } from "./evalTool";
 import { negotiateProtocolVersion, LATEST_PROTOCOL_VERSION } from './mcpProtocol';
 import { config } from "../../package.json";
 import { reloadPlugin, installPluginFromUrl } from "./devTools";
-import { importByIdentifier, findMissingPdfs, normalizeStringList } from "./importService";
+import { importByIdentifier, findMissingPdfs, normalizeStringList, resolveScopeItems } from "./importService";
 import { checkRetractions, findRelatedPapers } from "./scholarlyService";
 import { synthesizeAnnotations } from "./synthesisService";
 import { findDuplicates, mergeDuplicates, batchUpdateTags } from "./maintenanceService";
@@ -35,6 +35,7 @@ import { syncScihubResolvers, parseSources, DEFAULT_SCIHUB_SOURCES } from "./sci
 import { extractIdentifiers } from "./pdfIdentifier";
 import { titleSimilarity, MATCH_THRESHOLD } from './titleSimilarity';
 import { cslToZoteroFields, computeEnrichPatch, reconstructAbstract, shouldReplaceCreators, FILL_MISSING_FIELDS } from './metadataMerge';
+import { isPreprintCandidate, extractArxivId, findPublishedVersion } from './preprintService';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -1183,6 +1184,20 @@ export class StreamableMCPServer {
         },
       },
       {
+        name: 'upgrade_preprints',
+        description: 'Scan a scope for preprints (arXiv etc.), look up their published journal/conference version via OpenAlex title search, and upgrade the item: DOI, venue, date, itemType. Dry-run by default (returns per-item patch preview); confirm:true applies (requires write.enabled). Old values are preserved in the extra field (previous_doi / previous_version). Always reads back after write. Example: {"collectionKey":"ABCD1234"}',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            collectionKey: { type: 'string', description: 'Scope: a collection (top-level items).' },
+            itemKeys: { type: 'array', items: { type: 'string' }, description: 'Scope: explicit item keys.' },
+            confirm: { type: 'boolean', description: 'false (default) = preview patches only; true = write (write.enabled required).' },
+            limit: { type: 'number', description: 'Max items to check per call (default 20 — OpenAlex politeness, cap 100).' },
+            libraryID: { type: 'number' },
+          },
+        },
+      },
+      {
         name: 'extract_identifier_from_pdf',
         description: 'Extract a DOI / arXiv id from an item\'s PDF fulltext cache (Zotero\'s already-indexed text — no re-parsing). Read-only. Useful for items that have a PDF but no identifier — feed the result into import_by_identifier or find_missing_pdfs. Returns the first attachment that yields an identifier (DOI picked by frequency vote to avoid reference-list false positives). Example: {"itemKey":"ABCD1234"}',
         inputSchema: {
@@ -2057,6 +2072,101 @@ export class StreamableMCPServer {
           await item.saveTx();
           const reread = await Zotero.Items.getAsync(itemID);
           result = { enriched: true, applied, skippedForType, itemKey: reread.key, abstractLen: (reread.getField('abstractNote') || '').length };
+          break;
+        }
+
+        case 'upgrade_preprints': {
+          const libIDUP = args?.libraryID ?? Zotero.Libraries.userLibraryID;
+          const itemKeysUP = normalizeStringList(args?.itemKeys);
+          const scopeItemsUP = await resolveScopeItems(libIDUP, {
+            collectionKey: args?.collectionKey,
+            itemKeys: itemKeysUP.length ? itemKeysUP : undefined,
+          });
+          const factsOfUP = (i: any) => ({
+            itemType: String(Zotero.ItemTypes.getName(i.itemTypeID) || ''),
+            url: String(i.getField('url') || ''),
+            extra: String(i.getField('extra') || ''),
+            DOI: String(i.getField('DOI') || ''),
+          });
+          const limitUP = Math.max(1, Math.min(Number(args?.limit ?? 20), 100));
+          const candsUP = scopeItemsUP.filter((i: any) => isPreprintCandidate(factsOfUP(i))).slice(0, limitUP);
+          const patchesUP: any[] = [];
+          for (const it of candsUP) {
+            const fUP = factsOfUP(it);
+            const aidUP = extractArxivId(fUP.DOI) || extractArxivId(fUP.url) || extractArxivId(fUP.extra) || '';
+            const titleUP = String(it.getField('title') || '').trim();
+            if (!titleUP) {
+              patchesUP.push({ key: it.key, arxivId: aidUP || null, found: false, reason: 'no title — cannot title-search OpenAlex' });
+              continue;
+            }
+            let pubUP: any = null;
+            try {
+              pubUP = await findPublishedVersion(titleUP, aidUP);
+            } catch (e: any) {
+              patchesUP.push({ key: it.key, title: titleUP, arxivId: aidUP || null, found: false, error: `OpenAlex unreachable: ${e?.message ?? e}` });
+              continue;
+            }
+            patchesUP.push({
+              key: it.key,
+              title: titleUP,
+              arxivId: aidUP || null,
+              found: !!pubUP,
+              ...(pubUP ? {
+                patch: { DOI: pubUP.doi, publicationTitle: pubUP.venue, date: pubUP.year, itemType: 'journalArticle' },
+                openalexId: pubUP.openalexId,
+              } : {}),
+            });
+          }
+          if (args?.confirm !== true) {
+            result = {
+              dryRun: true,
+              checked: candsUP.length,
+              upgradable: patchesUP.filter((p) => p.found).length,
+              patches: patchesUP,
+              confirmWith: 'confirm:true',
+            };
+            break;
+          }
+          const writeEnabledUP = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
+          if (writeEnabledUP !== true) {
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
+          }
+          const writtenUP: any[] = [];
+          for (const p of patchesUP) {
+            if (!p.found) continue;
+            const iidUP = Zotero.Items.getIDFromLibraryAndKey(libIDUP, p.key);
+            if (!iidUP) { writtenUP.push({ key: p.key, written: false, error: 'item not found on write pass' }); continue; }
+            const itUP = await Zotero.Items.getAsync(iidUP);
+            const oldDoiUP = String(itUP.getField('DOI') || '').trim();
+            const oldExtraUP = String(itUP.getField('extra') || '');
+            try {
+              const jaTypeID = Zotero.ItemTypes.getID('journalArticle');
+              if (jaTypeID && itUP.itemTypeID !== jaTypeID) itUP.setType(jaTypeID);
+              // Back up old values into extra — append, never overwrite existing extra content.
+              const backupUP = `previous_doi: ${oldDoiUP}\nprevious_version: preprint`;
+              itUP.setField('extra', oldExtraUP ? `${oldExtraUP}\n${backupUP}` : backupUP);
+              itUP.setField('DOI', p.patch.DOI);
+              if (p.patch.publicationTitle) itUP.setField('publicationTitle', p.patch.publicationTitle);
+              if (p.patch.date) itUP.setField('date', p.patch.date);
+              await itUP.saveTx();
+              const rereadUP = await Zotero.Items.getAsync(iidUP);
+              const gotDoiUP = String(rereadUP.getField('DOI') || '').trim();
+              writtenUP.push({
+                key: p.key,
+                written: true,
+                doi: p.patch.DOI,
+                verified: gotDoiUP === p.patch.DOI,
+                doiChanged: gotDoiUP !== oldDoiUP,
+              });
+            } catch (e: any) {
+              writtenUP.push({ key: p.key, written: false, error: e?.message ?? String(e) });
+            }
+          }
+          result = {
+            checked: candsUP.length,
+            upgraded: writtenUP.filter((w) => w.written && w.verified).length,
+            results: writtenUP,
+          };
           break;
         }
 
