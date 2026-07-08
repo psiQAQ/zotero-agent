@@ -246,18 +246,18 @@ git commit -m "feat: find_doi repair mode (validate dead DOIs, propose replaceme
 **Files:**
 - Modify: `src/modules/selfTest.ts`、`README.md`、`CLAUDE.md`（工具数）
 
-- [ ] **Step 1: 两个 selfTest 场景（都走 dry-run，不依赖网络成功——网络失败时接受结构化 unreachable）**
+- [x] **Step 1: 两个 selfTest 场景（都走 dry-run，不依赖网络成功——网络失败时接受结构化 unreachable）**（代码已写入 selfTest.ts，真机执行留给集成阶段）
 
 ```ts
 await t.scenario("upgrade_preprints dry-run returns patch preview", async () => { /* 空集合 scope → checked:0, dryRun:true */ });
 await t.scenario("find_doi repair mode reports alive/dead structurally", async () => { /* 有 DOI 的条目 → {alive} 或 unreachable 结构 */ });
 ```
 
-- [ ] **Step 2: 全量回归**
+- [ ] **Step 2: 全量回归**（跳过——部署与真机回归留给集成阶段，见留验清单）
 
 `npm run build && node scripts/deploy-live.mjs` → `Zotero.ZoteroAgentSelfTest.run('protocol')` → 全 passed。
 
-- [ ] **Step 3: README 工具表加 `upgrade_preprints`、`find_doi` 描述更新 repair；§2 表格 metadata TODO 打勾。Commit**
+- [ ] **Step 3: README 工具表加 `upgrade_preprints`、`find_doi` 描述更新 repair；§2 表格 metadata TODO 打勾。Commit**（README/CLAUDE.md 修改按执行约束跳过，留给集成阶段；selfTest.ts 已单独 commit）
 
 ```bash
 git add src/modules/selfTest.ts README.md CLAUDE.md
