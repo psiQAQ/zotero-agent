@@ -151,7 +151,7 @@ git commit -m "feat: companion plugin bridge module (detect + structured missing
 - Modify: `src/modules/streamableMCPServer.ts`（tools 数组 + case handler；工具定义区参考现有 `run_javascript` 定义的写法，handler 区参考 `case 'enrich_item_metadata'` 的 scope/dry-run 形状）
 - Modify: `src/modules/companionBridge.ts`
 
-- [ ] **Step 1: 加工具 schema（tools 数组）**
+- [x] **Step 1: 加工具 schema（tools 数组）**
 
 ```ts
 {
@@ -169,7 +169,7 @@ git commit -m "feat: companion plugin bridge module (detect + structured missing
 },
 ```
 
-- [ ] **Step 2: 写 handler（case 分支）**
+- [x] **Step 2: 写 handler（case 分支）**
 
 ```ts
 case 'fetch_chinese_metadata': {
@@ -187,16 +187,16 @@ case 'fetch_chinese_metadata': {
 }
 ```
 
-- [ ] **Step 3: build 验证类型**
+- [x] **Step 3: build 验证类型**
 
 Run: `npm run build`
 Expected: 编译零错误，xpi 生成
 
-- [ ] **Step 4: 部署到真机验证**
+- [ ] **Step 4: 部署到真机验证**（跳过——由主会话在集成阶段做，见留验清单）
 
 Run: `node scripts/deploy-live.mjs`，然后经 MCP 调 `fetch_chinese_metadata`（先不带 confirm）对 1 个中文条目验证 dry-run 输出；再 `confirm:true` 验证字段真实回填并回读。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts src/modules/companionBridge.ts

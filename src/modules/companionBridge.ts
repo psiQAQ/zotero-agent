@@ -59,6 +59,185 @@ export function isCnkiSnapshotTitle(title: string): boolean {
   return String(title ?? "").includes("- 中国知网");
 }
 
+export interface JasminumCandidate {
+  item: any;
+  key: string;
+  type: "attachment" | "snapshot";
+  label: string;
+}
+
+export interface JasminumVerdict {
+  eligible: boolean;
+  /** present when eligible */
+  type?: "attachment" | "snapshot";
+  label?: string;
+  /** present when ineligible */
+  reason?: string;
+}
+
+/**
+ * Mirror of jasminum's menu gate (menu.ts:18-30): eligible iff
+ * isChineseTopAttachment (→ type "attachment") or isChinsesSnapshot (→ "snapshot").
+ * Everything else gets an agent-actionable reason.
+ */
+export function classifyJasminumCandidate(item: any): JasminumVerdict {
+  const isAttachment = typeof item.isAttachment === "function" && item.isAttachment();
+  const isTopLevel = typeof item.isTopLevelItem === "function" && item.isTopLevelItem();
+  const title = String(item.getField?.("title") ?? "");
+
+  if (isAttachment && isTopLevel && isChineseAttachmentFilename(item.attachmentFilename)) {
+    return { eligible: true, type: "attachment", label: String(item.attachmentFilename ?? "") };
+  }
+  const isSnapshot = typeof item.isSnapshotAttachment === "function" && item.isSnapshotAttachment();
+  if ((isSnapshot || (isTopLevel && item.itemType === "webpage")) && isCnkiSnapshotTitle(title)) {
+    return { eligible: true, type: "snapshot", label: title };
+  }
+
+  if (isAttachment && !isTopLevel) {
+    return { eligible: false, reason: "attachment already has a parent item — jasminum only scrapes TOP-LEVEL attachments" };
+  }
+  if (isAttachment) {
+    return {
+      eligible: false,
+      reason: `top-level attachment, but the filename needs ≥3 Chinese characters and extension pdf/caj/kdh/nh (got: ${item.attachmentFilename || "?"})`,
+    };
+  }
+  if (item.itemType === "webpage") {
+    return { eligible: false, reason: 'webpage item whose title lacks the "- 中国知网" CNKI marker' };
+  }
+  if (typeof item.isRegularItem === "function" && item.isRegularItem()) {
+    return {
+      eligible: false,
+      reason: `regular ${item.itemType} item — jasminum scrapes top-level Chinese attachment items (pdf/caj/kdh/nh) or CNKI snapshots, not regular items (use enrich_item_metadata / lint_metadata instead)`,
+    };
+  }
+  return { eligible: false, reason: `not an attachment or webpage item (${item.itemType ?? "unknown type"})` };
+}
+
+/**
+ * Resolve the tool scope WITHOUT the regular-item filter (jasminum's targets are
+ * attachments/webpages, so importService.resolveScopeItems would drop them all),
+ * then classify each into eligible/ineligible.
+ */
+export async function jasminumPlanScrape(
+  libraryID: number,
+  scope: { itemKeys?: string[]; collectionKey?: string },
+): Promise<{ eligible: JasminumCandidate[]; ineligible: Array<{ key: string; reason: string }> }> {
+  const items: any[] = [];
+  const ineligible: Array<{ key: string; reason: string }> = [];
+  if (scope.itemKeys?.length) {
+    for (const key of scope.itemKeys) {
+      const id = Zotero.Items.getIDFromLibraryAndKey(libraryID, key);
+      if (!id) {
+        ineligible.push({ key, reason: `item not found in library ${libraryID}` });
+        continue;
+      }
+      items.push(await Zotero.Items.getAsync(id));
+    }
+  } else if (scope.collectionKey) {
+    const cid = Zotero.Collections.getIDFromLibraryAndKey(libraryID, scope.collectionKey);
+    if (!cid) throw new Error(`Collection not found: ${scope.collectionKey}`);
+    const coll = await Zotero.Collections.getAsync(cid);
+    items.push(...coll.getChildItems());
+  } else {
+    throw new Error("Provide itemKeys or collectionKey — refusing to scan the whole library.");
+  }
+
+  const eligible: JasminumCandidate[] = [];
+  for (const item of items) {
+    const verdict = classifyJasminumCandidate(item);
+    if (verdict.eligible) eligible.push({ item, key: item.key, type: verdict.type!, label: verdict.label ?? "" });
+    else ineligible.push({ key: item.key, reason: verdict.reason ?? "ineligible" });
+  }
+  return { eligible, ineligible };
+}
+
+const JASMINUM_PER_ITEM_TIMEOUT_MS = 90_000;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Scrape metadata for pre-classified candidates via jasminum's TaskRunner
+ * (serial — addTask awaits runTask, so each await = that item finished).
+ *
+ * Recon addendum hazard: silent=true only presets resultIndex; when a search
+ * returns >1 results the task still parks on a user-selection deferred. The
+ * watchdog below auto-resumes it with the first result (silent's intent).
+ */
+export async function jasminumFetchMetadata(candidates: JasminumCandidate[]): Promise<any[]> {
+  const runner = Zotero?.Jasminum?.taskRunner;
+  if (!runner || typeof runner.createAndAddTask !== "function") {
+    throw new Error(
+      "jasminum is installed but its taskRunner API is missing — incompatible plugin version (bridge built against v1.1.x; see recon appendix).",
+    );
+  }
+  const results: any[] = [];
+  for (const { item, key, type } of candidates) {
+    // jasminum de-dupes tasks by md5(item.id) per session: addTask would silently
+    // skip a leftover task, so report that instead of pretending to scrape.
+    const prior = (runner.tasks ?? []).find((t: any) => t?.item?.id === item.id);
+    if (prior) {
+      results.push({
+        key,
+        ok: false,
+        skipped: true,
+        status: prior.status,
+        reason: "jasminum already has a task for this item in this session (it de-dupes by item id) — check its progress window, or restart Zotero to re-scrape",
+      });
+      continue;
+    }
+
+    let settled = false;
+    let failure: any = null;
+    runner.createAndAddTask(item, type, true).then(
+      () => { settled = true; },
+      (e: any) => { settled = true; failure = e; },
+    );
+    const t0 = Date.now();
+    while (!settled && Date.now() - t0 < JASMINUM_PER_ITEM_TIMEOUT_MS) {
+      await sleep(300);
+      try {
+        const t = (runner.tasks ?? []).find((x: any) => x?.item?.id === item.id);
+        if (t && t.status === "multiple_results" && t.deferred) runner.resumeTask(t.id, 0);
+      } catch { /* watchdog is best-effort */ }
+    }
+
+    const task = (runner.tasks ?? []).find((x: any) => x?.item?.id === item.id);
+    if (!settled) {
+      results.push({
+        key,
+        ok: false,
+        status: task?.status ?? "unknown",
+        error: `timed out after ${JASMINUM_PER_ITEM_TIMEOUT_MS}ms — the task may still be running; check the jasminum progress window on the Zotero machine`,
+      });
+      continue;
+    }
+    if (failure) {
+      results.push({ key, ok: false, status: task?.status ?? "unknown", error: failure?.message ?? String(failure) });
+      continue;
+    }
+
+    const status = task?.status ?? "unknown";
+    const entry: any = { key, ok: status === "success", status };
+    if (task?.message) entry.taskLog = String(task.message).slice(0, 500);
+    // Write-then-verify: read back where the metadata landed. Attachment scrapes
+    // reparent the file under a new regular item; top-level webpages are rewritten in place.
+    try {
+      const fresh = Zotero.Items.get(item.id);
+      const parent = fresh?.parentItem;
+      if (parent) {
+        entry.parentKey = parent.key;
+        entry.parentTitle = parent.getField("title");
+        entry.parentItemType = parent.itemType;
+      } else if (fresh) {
+        entry.title = fresh.getField?.("title");
+        entry.itemType = fresh.itemType;
+      }
+    } catch { /* readback is best-effort */ }
+    results.push(entry);
+  }
+  return results;
+}
+
 // ---------------------------------------------------------------- zotero-format-metadata (Linter)
 
 /**

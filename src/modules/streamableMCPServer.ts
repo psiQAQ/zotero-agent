@@ -35,6 +35,7 @@ import { syncScihubResolvers, parseSources, DEFAULT_SCIHUB_SOURCES } from "./sci
 import { extractIdentifiers } from "./pdfIdentifier";
 import { titleSimilarity, MATCH_THRESHOLD } from './titleSimilarity';
 import { cslToZoteroFields, computeEnrichPatch, reconstructAbstract, shouldReplaceCreators, FILL_MISSING_FIELDS } from './metadataMerge';
+import { detectCompanion, JASMINUM_ADDON_ID, jasminumPlanScrape, jasminumFetchMetadata } from './companionBridge';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -1183,6 +1184,20 @@ export class StreamableMCPServer {
         },
       },
       {
+        name: 'fetch_chinese_metadata',
+        description: 'Scrape Chinese-database metadata (CNKI / Wanfang / VIP) via the jasminum companion plugin. Complements enrich_item_metadata (which covers Western DOI sources). APPLIES ONLY to jasminum\'s target shapes: TOP-LEVEL attachment items whose filename contains ≥3 Chinese characters with extension pdf/caj/kdh/nh, or CNKI snapshots / webpage items titled "… - 中国知网" — NOT regular items. Dry-run by default: returns {eligible, ineligible} with per-item reasons. confirm:true scrapes eligible items (requires write.enabled); successful attachment scrapes reparent the file under a new regular item (parentKey in the result). Returns {installed:false, hint} if jasminum is not installed. Example: {"collectionKey": "ABCD1234"}',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            itemKeys: { type: 'array', items: { type: 'string' }, description: 'Item keys to consider (top-level Chinese attachments / CNKI snapshots). Comma-separated string or JSON array also accepted.' },
+            collectionKey: { type: 'string', description: 'Alternative scope: all direct child items of this collection. One of itemKeys/collectionKey is required (whole-library scans are refused).' },
+            confirm: { type: 'boolean', description: 'false (default) = dry-run eligibility preview; true = actually scrape and write metadata (write.enabled required).' },
+            limit: { type: 'number', description: 'Max items scraped per confirm call (default 5, cap 50 — each scrape hits CNKI and can take tens of seconds; loop for more).' },
+            libraryID: { type: 'number', description: 'Library ID (defaults to user library)' },
+          },
+        },
+      },
+      {
         name: 'extract_identifier_from_pdf',
         description: 'Extract a DOI / arXiv id from an item\'s PDF fulltext cache (Zotero\'s already-indexed text — no re-parsing). Read-only. Useful for items that have a PDF but no identifier — feed the result into import_by_identifier or find_missing_pdfs. Returns the first attachment that yields an identifier (DOI picked by frequency vote to avoid reference-list false positives). Example: {"itemKey":"ABCD1234"}',
         inputSchema: {
@@ -2057,6 +2072,47 @@ export class StreamableMCPServer {
           await item.saveTx();
           const reread = await Zotero.Items.getAsync(itemID);
           result = { enriched: true, applied, skippedForType, itemKey: reread.key, abstractLen: (reread.getField('abstractNote') || '').length };
+          break;
+        }
+
+        case 'fetch_chinese_metadata': {
+          const statusFC = await detectCompanion('jasminum', JASMINUM_ADDON_ID);
+          if (!statusFC.installed) { result = statusFC; break; }
+          if (statusFC.active === false) {
+            result = { ...statusFC, hint: 'jasminum is installed but disabled — enable it in Zotero → Tools → Plugins, then retry.' };
+            break;
+          }
+          const libIDFC = args?.libraryID ?? Zotero.Libraries.userLibraryID;
+          const itemKeysFC = normalizeStringList(args?.itemKeys);
+          if (!itemKeysFC.length && !args?.collectionKey) {
+            throw new Error('Provide itemKeys or collectionKey — refusing to scan the whole library.');
+          }
+          const planFC = await jasminumPlanScrape(libIDFC, { itemKeys: itemKeysFC, collectionKey: args?.collectionKey });
+          if (args?.confirm !== true) {
+            result = {
+              dryRun: true,
+              plugin: 'jasminum',
+              version: statusFC.version,
+              eligible: planFC.eligible.map((e) => ({ key: e.key, type: e.type, label: e.label })),
+              ineligible: planFC.ineligible,
+              confirmWith: 'confirm:true',
+            };
+            break;
+          }
+          const writeEnabledFC = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
+          if (writeEnabledFC !== true) {
+            throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
+          }
+          const capFC = Math.max(1, Math.min(Number(args?.limit) || 5, 50));
+          const batchFC = planFC.eligible.slice(0, capFC);
+          const scrapeResultsFC = await jasminumFetchMetadata(batchFC);
+          result = {
+            scraped: scrapeResultsFC.filter((r: any) => r.ok).length,
+            failed: scrapeResultsFC.filter((r: any) => !r.ok).length,
+            results: scrapeResultsFC,
+            remainingEligible: Math.max(0, planFC.eligible.length - batchFC.length),
+            ineligible: planFC.ineligible,
+          };
           break;
         }
 
