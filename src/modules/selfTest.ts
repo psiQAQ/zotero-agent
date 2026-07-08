@@ -468,4 +468,34 @@ registerSuite("protocol", async (t) => {
     await mcpPost(rpc("tools/call", { name: "manage_pdf_resolvers", arguments: { action: "disable" } })); // cleanup
     t.assertTrue(!!r.greySourceWarning, "fetch must warn when scihub enabled");
   });
+
+  await t.scenario("fetch_chinese_metadata: missing plugin structured / present plugin dry-runs", async () => {
+    // Works with or without jasminum installed (CI profiles have no companions).
+    const r = await mcpPost(rpc("tools/call", { name: "fetch_chinese_metadata", arguments: { itemKeys: ["AAAAAAAA"] } }));
+    if (r.json?.result?.isError) throw new Error(`unexpected tool error: ${r.json.result.content?.[0]?.text?.slice(0, 200)}`);
+    const body = JSON.parse(r.json.result.content[0].text);
+    if (body.installed === false) {
+      t.assertTrue(!!body.hint, "installed:false must carry an install hint");
+    } else {
+      t.assertEq(body.dryRun, true, "must be a dry-run by default");
+      t.assertTrue(Array.isArray(body.eligible) && Array.isArray(body.ineligible), "dry-run must report eligible/ineligible arrays");
+      t.assertTrue(body.ineligible.some((x: any) => x.key === "AAAAAAAA"), "bogus key must land in ineligible with a reason");
+    }
+  });
+
+  await t.scenario("lint_metadata: missing plugin structured / dry-run shape / unknown rule rejected", async () => {
+    const r = await mcpPost(rpc("tools/call", { name: "lint_metadata", arguments: { itemKeys: ["AAAAAAAA"] } }));
+    if (r.json?.result?.isError) throw new Error(`unexpected tool error: ${r.json.result.content?.[0]?.text?.slice(0, 200)}`);
+    const body = JSON.parse(r.json.result.content[0].text);
+    if (body.installed === false) {
+      t.assertTrue(!!body.hint, "installed:false must carry an install hint");
+      return;
+    }
+    t.assertEq(body.dryRun, true, "must be a dry-run by default");
+    t.assertTrue(body.wouldLint && typeof body.wouldLint.items === "number", "dry-run must report wouldLint.items");
+    // Unknown rule ids must be rejected before reaching the plugin (its getByID(id)! would crash).
+    const bad = await mcpPost(rpc("tools/call", { name: "lint_metadata", arguments: { itemKeys: ["AAAAAAAA"], rules: ["not-a-rule"] } }));
+    t.assertEq(bad.json?.result?.isError, true, "unknown rule id must be a tool error");
+    t.assertTrue(/Unknown rule id/i.test(bad.json?.result?.content?.[0]?.text ?? ""), "error must name the unknown rule");
+  });
 });
