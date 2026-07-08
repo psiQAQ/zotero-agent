@@ -228,7 +228,7 @@ git commit -m "feat: import_bibliography tool (BibTeX/RIS/CSL-JSON, idempotent, 
 **Files:**
 - Modify: `src/modules/selfTest.ts`、`README.md`、`CLAUDE.md`
 
-- [ ] **Step 1: selfTest 场景（dry-run，无网络依赖，最稳的一类场景）**
+- [x] **Step 1: selfTest 场景（dry-run，无网络依赖，最稳的一类场景）**
 
 ```ts
 await t.scenario("import_bibliography dry-run parses and plans without writing", async () => {

@@ -280,6 +280,17 @@ registerSuite("protocol", async (t) => {
     t.assertEq(second.skipped, true, "second call must skip");
   });
 
+  await t.scenario("import_bibliography dry-run parses and plans without writing", async () => {
+    const bib = "@article{x1, title={SelfTest Sample}, author={Test, A}, year={2024}}";
+    const r = await mcpPost(
+      rpc("tools/call", { name: "import_bibliography", arguments: { content: bib } }),
+    );
+    const payload = JSON.parse(r.json.result.content[0].text);
+    t.assertEq(payload.dryRun, true, "dry-run must be the default");
+    t.assertEq(payload.parsed, 1, "one entry parsed");
+    t.assertTrue(Array.isArray(payload.plan) && payload.plan.length === 1, "plan lists the entry");
+  });
+
   await t.scenario("find_missing_pdfs reports coverage", async () => {
     const r = await mcpPost(rpc("tools/call", { name: "find_missing_pdfs", arguments: { action: "report", limit: 5 } }));
     const payload = JSON.parse(r.json.result.content[0].text);
