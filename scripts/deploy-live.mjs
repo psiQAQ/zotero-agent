@@ -17,8 +17,8 @@ const claudeJson = `${process.env.USERPROFILE || process.env.HOME}/.claude.json`
 const cfg = JSON.parse(readFileSync(claudeJson, "utf8"));
 function findZotero(o) {
   if (!o || typeof o !== "object") return null;
-  if (o.zotero?.url && o.zotero?.headers?.Authorization) return o.zotero;
-  for (const v of Object.values(o)) {
+  for (const [k, v] of Object.entries(o)) {
+    if (/^zotero(-mcp|-dev)?$/.test(k) && v?.url && v?.headers?.Authorization) return v;
     const hit = findZotero(v);
     if (hit) return hit;
   }

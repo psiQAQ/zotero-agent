@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-07-08
+
+### Added (4 new tools, 42 → 46)
+- **`import_bibliography`**: bulk BibTeX / RIS / CSL-JSON import (format auto-detected via Zotero's import translators) with idempotent dedup — case-insensitive DOI match first, then title similarity ≥0.86 — and a dry-run per-entry plan (import/skip + reason). Partial imports go through a lossless CSL-JSON round-trip; entries that fail the round-trip are reported as skipped (`csl-roundtrip-unsupported`), never silently dropped
+- **`upgrade_preprints`**: find the published version of arXiv-style preprints via OpenAlex **title search** (publishedVersion + non-repository source + non-arXiv DOI, guarded by title similarity ≥0.86) and upgrade DOI / venue / date / itemType. Old values are backed up into Extra (`previous_doi` / `previous_version`); dry-run by default, per-item read-back verification on confirm
+- **`fetch_chinese_metadata`**: bridge to the [jasminum](https://github.com/l0o0/jasminum) companion plugin — CNKI / Wanfang / VIP scraping for top-level Chinese attachments and CNKI snapshots, with eligibility classification (per-item reasons for ineligible shapes). A watchdog auto-resolves jasminum's multiple-results pause so batch scrapes cannot hang; returns structured `{installed:false, hint}` when the plugin is missing
+- **`lint_metadata`**: bridge to [zotero-format-metadata](https://github.com/northword/zotero-format-metadata) (Linter) — run `"standard"` or explicit rule ids over items; unknown rule ids are rejected with the valid list; bounded wait (`timeout_ms`) with a best-effort stats snapshot. The plugin has no preview API, so dry-run lists targets only — documented honestly in the tool description
+- **`find_doi` repair mode** (`mode:"repair"`): validate an item's existing DOI via the Handle System API (`doi.org/api/handles`); dead DOIs get a CrossRef reverse-lookup replacement proposal (the dead DOI itself is excluded from candidates), `unknown` outcomes (5xx / network failure) never propose a replacement; the old DOI is backed up into Extra on confirm
+
+### Changed
+- selfTest: 26 → 31 scenarios (5 new, covering all tools above; missing-companion paths included so CI-like profiles still pass)
+- Unit tests: 70 → 91 cases (new pure modules: `importDedup`, `preprintService`, `companionBridge`)
+- `deploy-live.mjs`: Zotero-side staging path now resolved via `PathUtils.tempDir` (cross-platform, no hardcoded `/tmp`); file URL built with `Services.io.newFileURI`; MCP config lookup accepts `zotero` / `zotero-mcp` / `zotero-dev` server names
+
 ## [2.0.2] - 2026-07-07
 
 ### Fixed

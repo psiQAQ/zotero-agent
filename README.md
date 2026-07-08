@@ -4,7 +4,7 @@
 
 **Zotero Agent** is a Zotero plugin that embeds an MCP (Model Context Protocol) server, turning your local Zotero library into a workspace an AI agent can fully operate — not just read.
 
-It exposes **42 tools** spanning library search & retrieval, metadata enrichment, identifier-based import (DOI / arXiv / ISBN / PMID), grey-source PDF download (Sci-Hub / Anna's Archive), duplicate detection & merge, batch tagging, citation-graph expansion, and annotation synthesis — plus an escape-hatch `run_javascript` for arbitrary in-process automation beyond the built-in tools.
+It exposes **46 tools** spanning library search & retrieval, metadata enrichment, identifier-based import (DOI / arXiv / ISBN / PMID), bulk bibliography import (BibTeX / RIS / CSL-JSON), preprint→published-version upgrade, DOI repair, grey-source PDF download (Sci-Hub / Anna's Archive), duplicate detection & merge, batch tagging, citation-graph expansion, annotation synthesis, and companion-plugin bridges (jasminum, Linter) — plus an escape-hatch `run_javascript` for arbitrary in-process automation beyond the built-in tools.
 
 In practice, an AI assistant (Claude, Codex, …) talking to this server can search your library in natural language, clean up metadata and tags in bulk, import and de-duplicate papers, fetch missing PDFs, expand a topic through its citation graph, and synthesize your annotations — with dry-run-by-default safety on every write.
 
@@ -158,17 +158,21 @@ The table below is based on the actual tool definitions in `src/modules/streamab
 | `reload_plugin` | Reload an installed Zotero plugin for development workflows. |
 | `install_plugin_from_url` | Install or upgrade a plugin XPI from a reachable URL or file path. |
 | `import_by_identifier` | Import an item by DOI, arXiv ID, ISBN, or PMID. |
+| `import_bibliography` | Bulk-import BibTeX / RIS / CSL-JSON (auto-detected); idempotent dedup by DOI / title similarity; dry-run plan by default. |
 | `find_missing_pdfs` | Report items without PDFs or fetch open-access PDFs for them. |
 | `manage_pdf_resolvers` | Register Sci-Hub / Anna's Archive into Zotero's native PDF resolver pref (grey sources default automatic=false, manual-only); actual download is via find_missing_pdfs. |
 | `extract_identifier_from_pdf` | Mine DOI or arXiv ID from a PDF's fulltext cache using frequency voting. Read-only. |
-| `find_doi` | Reverse-lookup a DOI via CrossRef title-similarity (≥0.86 threshold); dry-run default, confirm write requires write.enabled. |
+| `find_doi` | Reverse-lookup a DOI via CrossRef title-similarity (≥0.86 threshold), or `mode:"repair"` to validate a dead DOI (Handle System API) and propose a replacement; dry-run default, confirm write requires write.enabled. |
 | `enrich_item_metadata` | Fill missing fields (abstract/venue/volume/issue/pages/ISSN/publisher/date) from a DOI via doi.org CSL-JSON + OpenAlex; dry-run default, confirm write requires write.enabled. |
+| `upgrade_preprints` | Find the published version of arXiv-style preprints via OpenAlex title search and upgrade DOI/venue/date/itemType; old values backed up into Extra; dry-run default. |
 | `check_retractions` | Check items against scite.ai editorial notices such as retractions or corrections. |
 | `find_related_papers` | Traverse the citation graph through OpenAlex to find citing or referenced papers. |
 | `synthesize_annotations` | Aggregate highlights and notes into a literature-review-oriented markdown bundle. |
 | `find_duplicates` | Detect duplicate items using Zotero's native duplicates engine. |
 | `merge_duplicates` | Merge duplicate items into a chosen master item. |
 | `batch_update_tags` | Run bulk tag operations such as add, remove, or rename. |
+| `fetch_chinese_metadata` | Scrape CNKI/Wanfang/VIP metadata for top-level Chinese attachments & CNKI snapshots via the jasminum companion plugin (eligibility classification, hang-proof watchdog). |
+| `lint_metadata` | Run zotero-format-metadata (Linter) rules over items — title case, dates, journal abbreviations, Chinese name splitting; unknown rule ids rejected with the valid list. |
 
 ## Built on Open Source — Integration Status & Roadmap
 
@@ -186,9 +190,9 @@ Forked from [cookjohn/zotero-mcp](https://github.com/cookjohn/zotero-mcp) — a 
 | --- | --- | --- |
 | Auth | loopback only | **PSK Bearer** auth + `Origin` validation (DNS-rebind defense) |
 | Eval | none | **`run_javascript`** privileged eval tool (timeout + 100 KB cap) |
-| Tools | 27 | **42** — +15 tools (identifier import, missing-PDF audit, citation graph, dedup, batch tags, metadata enrich, DOI reverse-lookup, grey-source download, …) |
+| Tools | 27 | **46** — +19 tools (identifier & bulk-bibliography import, missing-PDF audit, citation graph, dedup, batch tags, metadata enrich, DOI reverse-lookup & repair, preprint upgrade, grey-source download, companion-plugin bridges, …) |
 | Search | keyword | + RRF **hybrid** semantic search, 0-result **fallback ladder** |
-| Testing | none | 26-scenario in-process **selfTest** + node unit tests |
+| Testing | none | 31-scenario in-process **selfTest** + node unit tests (91 cases) |
 | Deploy | manual | one-shot **`deploy-live`** (base64 ship + self-upgrade) + `reload_plugin` / `install_plugin_from_url` |
 | i18n | zh / en | + de / es / fr / ja |
 | CJK | — | byte-level HTTP read fix (dense CJK bodies no longer mojibake) |
@@ -201,7 +205,7 @@ Ideas were **re-implemented** (not vendored) into native tools:
 
 | Source | Absorbed into | Status | TODO |
 | --- | --- | --- | --- |
-| [54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp) | `import_by_identifier`, `find_missing_pdfs`, `find_related_papers` (OpenAlex), `check_retractions` (scite), `synthesize_annotations` | ✅ | port more of its 62-tool breadth (BibTeX / CSL import, batch OA indexing) |
+| [54yyyu/zotero-mcp](https://github.com/54yyyu/zotero-mcp) | `import_by_identifier`, `import_bibliography` (BibTeX / RIS / CSL-JSON), `find_missing_pdfs`, `find_related_papers` (OpenAlex), `check_retractions` (scite), `synthesize_annotations` | ✅ | batch OA indexing |
 | [introfini/ZotSeek](https://github.com/introfini/ZotSeek) | RRF hybrid `semantic_search` | ✅ | WebGPU acceleration; Matryoshka dim truncation |
 | [introfini/mcp-server-zotero-dev](https://github.com/introfini/mcp-server-zotero-dev) | `run_javascript`, `reload_plugin`, `install_plugin_from_url` | ✅ | screenshot / DOM-inspection tools for UI debugging |
 
@@ -209,8 +213,8 @@ Ideas were **re-implemented** (not vendored) into native tools:
 
 | Source | Absorbed into | Status | TODO |
 | --- | --- | --- | --- |
-| [zotero-metadata-hunter](https://github.com/federicotorrielli/zotero-metadata-hunter) | `enrich_item_metadata` (field-level fill from DOI CSL-JSON + OpenAlex) | ✅ | preprint → published-version upgrade |
-| [zotero-doi-fix](https://github.com/pandaAIGC/zotero-doi-fix) | `find_doi` (title-similarity fusion), `extract_identifier_from_pdf` | ✅ | DOI **repair** (bad → revalidate → replace w/ backup), not just reverse-lookup |
+| [zotero-metadata-hunter](https://github.com/federicotorrielli/zotero-metadata-hunter) | `enrich_item_metadata` (field-level fill from DOI CSL-JSON + OpenAlex), `upgrade_preprints` (published-version upgrade via OpenAlex title search) | ✅ | — |
+| [zotero-doi-fix](https://github.com/pandaAIGC/zotero-doi-fix) | `find_doi` (title-similarity fusion + `mode:"repair"`: Handle-System validation → replace w/ backup), `extract_identifier_from_pdf` | ✅ | — |
 
 **PDF** — see [comparison](./docs/benchmarking/pdf-download.md)
 
@@ -222,11 +226,11 @@ Ideas were **re-implemented** (not vendored) into native tools:
 
 These plugins aren't folded into this one, but if the user **installs them**, an AI agent can drive them through **`run_javascript`** — which runs in Zotero's privileged context and can reach any installed plugin's exposed API. Current boundary and future dedicated-tool directions:
 
-| Plugin | Capability | Current agent boundary (via `run_javascript`) | TODO (dedicated tool) |
+| Plugin | Capability | Current agent boundary | TODO (dedicated tool) |
 | --- | --- | --- | --- |
-| [jasminum 茉莉花](https://github.com/l0o0/jasminum) | Chinese metadata scraping (CNKI / Wanfang / VIP) | Invoke its scrape / filename-match functions on the `Zotero.Jasminum` namespace if exposed | wrap `fetch_chinese_metadata(itemKey)` — one call to scrape + fill CNKI fields |
-| [zotero-updateifsE 绿青蛙](https://github.com/redleafnew/zotero-updateifsE) | Impact factor / JCR & CAS quartiles | Call its easyScholar update path per item | `update_journal_metrics(scope)` tool |
-| [zotero-format-metadata](https://github.com/northword/zotero-format-metadata) | 50+ format linters, LTWA journal abbreviation | Trigger its lint rules programmatically | `lint_metadata(scope, rules)` tool |
-| [zotero-zotadata](https://github.com/ydeng11/zotero-zotadata) | Multi-source fill + multi-provider PDF discovery | Call its retrieval pipeline | `deep_enrich(itemKey)` combining fill + PDF fetch |
+| [jasminum 茉莉花](https://github.com/l0o0/jasminum) | Chinese metadata scraping (CNKI / Wanfang / VIP) | ✅ dedicated tool **`fetch_chinese_metadata`** (v2.1.0): eligibility classification + hang-proof watchdog over `Zotero.Jasminum` task runner | — |
+| [zotero-updateifsE 绿青蛙](https://github.com/redleafnew/zotero-updateifsE) | Impact factor / JCR & CAS quartiles | Call its easyScholar update path per item via `run_javascript` | `update_journal_metrics(scope)` tool |
+| [zotero-format-metadata](https://github.com/northword/zotero-format-metadata) | 50+ format linters, LTWA journal abbreviation | ✅ dedicated tool **`lint_metadata`** (v2.1.0): standard/explicit rules over `Zotero.Linter.hooks.onLintInBatch`, unknown ids rejected | — |
+| [zotero-zotadata](https://github.com/ydeng11/zotero-zotadata) | Multi-source fill + multi-provider PDF discovery | Call its retrieval pipeline via `run_javascript` | `deep_enrich(itemKey)` combining fill + PDF fetch |
 
 > `run_javascript` is the universal escape hatch: any installed plugin exposing functions on the `Zotero` object (or a global) can be driven by the agent **today**. The TODO column is about promoting the most-used interactions into typed, dry-run-safe MCP tools.
