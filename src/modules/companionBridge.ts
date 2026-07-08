@@ -314,3 +314,109 @@ export function validateLintRules(
   for (const id of requested) (known.has(id) ? ok : unknown).push(id);
   return { ok, unknown };
 }
+
+/**
+ * Enumerate rule ids the installed Linter actually knows, from its pref branch
+ * (`rule.<id>` keys; sub-options like `rule.require-journal-abbr.usefull` are
+ * skipped). Best-effort: returns [] when the branch is unavailable.
+ */
+export function enumerateLinterRules(): Array<{ id: string; enabled: boolean }> {
+  try {
+    const branch = Services.prefs.getBranch("extensions.zotero.formatmetadata.");
+    const keys: string[] = branch.getChildList("");
+    const out: Array<{ id: string; enabled: boolean }> = [];
+    for (const k of keys) {
+      if (!k.startsWith("rule.")) continue;
+      const id = k.slice("rule.".length);
+      if (id.includes(".")) continue;
+      let enabled = false;
+      try { enabled = branch.getBoolPref(k) === true; } catch { /* non-bool pref */ }
+      out.push({ id, enabled });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+const LINT_DEFAULT_TIMEOUT_MS = 120_000;
+const LINT_MAX_TIMEOUT_MS = 600_000;
+
+/**
+ * Run the Linter over items via hooks.onLintInBatch. Recon addendum semantics:
+ * the promise resolves when the WHOLE batch completes (runner.add awaits its
+ * concurrent queue), but finish() resets runner.stats to zero right before that
+ * — so progress is sampled concurrently and the last non-empty snapshot is
+ * returned. There is no preview API; rules mutate fields directly.
+ */
+export async function formatMetadataLint(
+  items: any[],
+  rules: string[] | undefined,
+  opts: { timeoutMs?: number } = {},
+): Promise<any> {
+  const linter = Zotero?.Linter;
+  const hooks = linter?.hooks;
+  if (!hooks || typeof hooks.onLintInBatch !== "function") {
+    throw new Error(
+      "zotero-format-metadata is installed but hooks.onLintInBatch is missing — incompatible plugin version (bridge built against v3.3.x; see recon appendix).",
+    );
+  }
+  const ruleIDs: string[] | string = rules?.length ? rules : "standard";
+  const timeoutMs = Math.min(Math.max(Number(opts.timeoutMs) || LINT_DEFAULT_TIMEOUT_MS, 1000), LINT_MAX_TIMEOUT_MS);
+
+  const readStats = (): any | null => {
+    try {
+      const s = linter?.runner?.stats;
+      if (!s || typeof s.total !== "number") return null;
+      return {
+        total: s.total,
+        current: s.current,
+        pass: s.pass,
+        error: s.error,
+        records: Array.isArray(s.records)
+          ? s.records.slice(0, 50).map((r: any) => ({ level: r.level, message: r.message, title: r.title, ruleID: r.ruleID }))
+          : [],
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  let settled = false;
+  let failure: any = null;
+  hooks.onLintInBatch(ruleIDs, items).then(
+    () => { settled = true; },
+    (e: any) => { settled = true; failure = e; },
+  );
+
+  let lastStats: any = null;
+  const t0 = Date.now();
+  while (!settled && Date.now() - t0 < timeoutMs) {
+    await sleep(250);
+    const s = readStats();
+    if (s && (s.total > 0 || s.records.length > 0)) lastStats = s;
+  }
+
+  if (!settled) {
+    return {
+      submitted: true,
+      completed: false,
+      items: items.length,
+      rules: ruleIDs,
+      timedOutAfterMs: timeoutMs,
+      statsSnapshot: lastStats ?? undefined,
+      note: "Lint batch still running in Zotero — some tool-* rules open dialogs on the Zotero machine that block the batch until answered. Re-check progress via run_javascript: Zotero.Linter.runner.stats",
+    };
+  }
+  if (failure) {
+    throw new Error(`Linter batch failed: ${failure?.message ?? String(failure)}`);
+  }
+  return {
+    submitted: true,
+    completed: true,
+    items: items.length,
+    rules: ruleIDs,
+    statsSnapshot: lastStats ?? undefined,
+    note: "statsSnapshot is the last progress observed before the plugin reset its counters (sampled every 250ms) — counts may slightly lag the final state. The Linter has no preview/diff API; changes were applied directly.",
+  };
+}

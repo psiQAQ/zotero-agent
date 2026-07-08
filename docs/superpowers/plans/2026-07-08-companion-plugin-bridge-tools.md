@@ -211,7 +211,7 @@ git commit -m "feat: fetch_chinese_metadata tool bridging jasminum"
 - Modify: `src/modules/streamableMCPServer.ts`
 - Modify: `src/modules/companionBridge.ts`
 
-- [ ] **Step 1: 加工具 schema**
+- [x] **Step 1: 加工具 schema**
 
 ```ts
 {
@@ -230,16 +230,16 @@ git commit -m "feat: fetch_chinese_metadata tool bridging jasminum"
 },
 ```
 
-- [ ] **Step 2: handler + companionBridge 封装**
+- [x] **Step 2: handler + companionBridge 封装**
 
 与 Task 3 同形：detect → scope → dry-run 预览（列出将跑的规则与条目数）→ confirm 才调 `formatMetadataLint(items, rules)`。
 **dry-run 语义注意**：若插件只提供"就地修改"入口而无 preview API（以附录为准），dry-run 就退化为"报告将处理的条目与规则清单"，并在 description 里写明 preview 不含逐字段 diff——诚实优于伪造。
 
-- [ ] **Step 3: build + 部署 + 真机验证**
+- [ ] **Step 3: build + 部署 + 真机验证**（build 已过；部署/真机部分跳过——由主会话在集成阶段做，见留验清单）
 
 同 Task 3 Step 3-4：对一个 title 全小写的测试条目跑 `rules:["titleCase"]`（规则 id 以附录为准），确认字段修正。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts src/modules/companionBridge.ts
