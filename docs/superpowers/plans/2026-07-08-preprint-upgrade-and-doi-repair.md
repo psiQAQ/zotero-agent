@@ -85,7 +85,7 @@ git commit -m "feat: preprint candidate detection (pure functions + tests)"
 **Files:**
 - Modify: `src/modules/preprintService.ts`
 
-- [ ] **Step 1: 实现 findPublishedVersion**
+- [x] **Step 1: 实现 findPublishedVersion**（按侦察结果走标题搜索路线：`findPublishedVersion(title, arxivId)` + 纯函数 `pickPublishedVersion(results, title)` 以 fixture 单测覆盖判据）
 
 OpenAlex 对 arXiv 收录有两条路：按 arXiv DOI 查 work，其 `primary_location.version` 若为 `submittedVersion`，看 `locations[]` 里有没有 `version:"publishedVersion"` 的来源；或者用 work 的 `ids.doi` 与 `related_works`。**实现前先用 2 个真实 arXiv id 手测 API 响应确定字段路径**（curl 或 fetch 均可），把确认的 JSON 路径写成注释。
 
@@ -123,12 +123,12 @@ export async function findPublishedVersion(arxivId: string): Promise<PublishedVe
    - **推荐判据（首选）**：改用 Handle System REST API `GET https://doi.org/api/handles/<doi>`——活 = HTTP 200 且 `body.responseCode === 1`；死 = HTTP 404 且 `responseCode === 100`（两例实测均符合）。语义明确、不依赖 redirect 行为、不会真的打到出版商站点。
    - 若坚持 HEAD：`resp.type === "opaqueredirect"` → 活；`resp.status === 404 || resp.status === 410` → 死；其余（5xx/网络错误）→ unknown，不下结论、不提议替换。
 
-- [ ] **Step 2: 真机手测**
+- [ ] **Step 2: 真机手测**（跳过——留给集成阶段，见留验清单）
 
 经 `run_javascript` 对库里 2 个已知有正式版的 arXiv 条目跑 `findPublishedVersion`（先 build+deploy，或直接把函数体粘进 run_javascript 验证字段路径）。
 Expected: 返回非 arXiv 的 DOI + venue；对纯 preprint（无正式版）返回 null。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/modules/preprintService.ts
