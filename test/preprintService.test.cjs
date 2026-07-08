@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { isPreprintCandidate, extractArxivId, pickPublishedVersion } = require('../.tmp-test/preprintService.js');
+const { isPreprintCandidate, extractArxivId, pickPublishedVersion, classifyHandleResponse } = require('../.tmp-test/preprintService.js');
 
 test("isPreprintCandidate: itemType preprint hits directly", () => {
   assert.strictEqual(isPreprintCandidate({ itemType: "preprint", url: "", extra: "", DOI: "" }), true);
@@ -77,4 +77,13 @@ test("extractArxivId parses abs/pdf URLs, arXiv: prefix, arXiv DOI", () => {
   assert.strictEqual(extractArxivId("10.48550/arXiv.2401.00001"), "2401.00001");
   assert.strictEqual(extractArxivId("https://example.com"), null);
   assert.strictEqual(extractArxivId(""), null);
+});
+
+test("classifyHandleResponse: 200+rc1 alive, 404+rc100 dead, everything else unknown", () => {
+  assert.strictEqual(classifyHandleResponse(200, { responseCode: 1, handle: "10.1038/nature14539" }), "alive");
+  assert.strictEqual(classifyHandleResponse(404, { responseCode: 100 }), "dead");
+  assert.strictEqual(classifyHandleResponse(500, { responseCode: 1 }), "unknown");
+  assert.strictEqual(classifyHandleResponse(200, { responseCode: 2 }), "unknown");
+  assert.strictEqual(classifyHandleResponse(404, null), "unknown");
+  assert.strictEqual(classifyHandleResponse(0, null), "unknown");
 });

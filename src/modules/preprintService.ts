@@ -73,6 +73,26 @@ export function pickPublishedVersion(results: any[], title: string): PublishedVe
   return null;
 }
 
+// ------------------------------------------- DOI liveness (find_doi mode:"repair")
+
+export type DoiAliveness = "alive" | "dead" | "unknown";
+
+/**
+ * Classify a Handle System REST API response (GET https://doi.org/api/handles/<doi>).
+ * Recon 2026-07-08 (live Zotero fetch): HEAD-to-doi.org is unusable — Zotero's fetch
+ * with redirect:"manual" returns {status:0, type:"opaqueredirect"} for live DOIs, so
+ * the planned "3xx = alive" criterion never fires. The Handle API is unambiguous:
+ *   alive = HTTP 200 with body.responseCode === 1
+ *   dead  = HTTP 404 with body.responseCode === 100
+ * Anything else (5xx, network noise, unexpected bodies) is "unknown" — callers must
+ * not conclude or propose replacements on unknown.
+ */
+export function classifyHandleResponse(status: number, body: any): DoiAliveness {
+  if (status === 200 && body?.responseCode === 1) return "alive";
+  if (status === 404 && body?.responseCode === 100) return "dead";
+  return "unknown";
+}
+
 /**
  * Find the published (journal/conference) version of a preprint by title
  * search on OpenAlex. arxivId is informational (title drives the search;

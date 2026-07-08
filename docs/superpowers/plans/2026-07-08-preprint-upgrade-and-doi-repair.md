@@ -204,7 +204,7 @@ git commit -m "feat: upgrade_preprints tool (OpenAlex published-version upgrade,
 **Files:**
 - Modify: `src/modules/streamableMCPServer.ts`（`case 'find_doi'` handler，1827 行附近；schema 加 `mode` 参数）
 
-- [ ] **Step 1: schema 加参数**
+- [x] **Step 1: schema 加参数**
 
 在 `find_doi` 的 inputSchema.properties 增加：
 
@@ -212,7 +212,7 @@ git commit -m "feat: upgrade_preprints tool (OpenAlex published-version upgrade,
 mode: { type: 'string', enum: ['find', 'repair'], description: "find (default): reverse-lookup a DOI for items lacking one. repair: validate the item's existing DOI against doi.org; if dead (404/410), reverse-lookup a replacement and propose it (old DOI preserved in extra on confirm)." },
 ```
 
-- [ ] **Step 2: repair 分支实现**
+- [x] **Step 2: repair 分支实现**（按侦察结果改用 Handle System API `GET doi.org/api/handles/<doi>`：200+responseCode 1=活；404+responseCode 100=死；其余 unknown 不下结论。repair 跳过 OpenURL tier 且候选过滤掉死 DOI 自身，防自匹配）
 
 ```ts
 if (args?.mode === 'repair') {
@@ -228,11 +228,11 @@ if (args?.mode === 'repair') {
 
 注意：doi.org 对 HEAD 的行为（3xx=活）先用 1 个真实 DOI + 1 个伪造 DOI 手测确认，再定 `alive` 判据；机构代理网络下可能全 200，判据要以实测为准。
 
-- [ ] **Step 3: build + 真机验证**
+- [ ] **Step 3: build + 真机验证**（build 已本地通过；真机验证跳过——留给集成阶段，见留验清单）
 
 对一个正常条目跑 `mode:"repair"` 应报 `alive:true`；手工把一个测试条目的 DOI 改错一位再跑，应给出 candidate（不写库），confirm 后替换并回读。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts
