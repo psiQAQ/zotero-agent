@@ -14,7 +14,7 @@
 
 ### Task 1: 侦察 translation API 的确切行为
 
-- [ ] **Step 1: 真机验证 Import translator 的 dry-run 路径**
+- [x] **Step 1: 真机验证 Import translator 的 dry-run 路径**
 
 经 `run_javascript` 跑（3 条 BibTeX 样例）：
 
@@ -32,11 +32,11 @@ return { translator: translators[0].label, count: items.length, first: items[0] 
 
 Expected: `translator: "BibTeX"`, `count: 2`，`first` 含 title/creators/DOI 字段。**记录返回 item JSON 的字段形状**（后续查重与写库都依赖它）。同法验证 RIS 与 CSL-JSON 各一小段。
 
-- [ ] **Step 2: 验证真写路径**
+- [x] **Step 2: 验证真写路径**
 
 同上但 `translate({ libraryID: Zotero.Libraries.userLibraryID, collections: [<某测试集合 id>] })`，确认条目落库落集合；测完把测试条目移入回收站。
 
-- [ ] **Step 3: 把两步确认的行为差异记进 commit message 或本文件，Commit**
+- [x] **Step 3: 把两步确认的行为差异记进 commit message 或本文件，Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-07-08-bulk-bibliography-import.md
@@ -77,7 +77,7 @@ git commit -m "docs: record Zotero.Translate.Import behavior probe results"
 - Modify: `src/modules/importService.ts`
 - Test: `test/importDedup.test.cjs`
 
-- [ ] **Step 1: 写失败单测**
+- [x] **Step 1: 写失败单测**
 
 ```js
 // test/importDedup.test.cjs（加载方式照抄 test/metadataMerge.test.cjs 约定）
@@ -100,9 +100,9 @@ assert.strictEqual(classifyIncoming({ doi: "10.9/new", title: "Brand New Work" }
 console.log("importDedup: ok");
 ```
 
-- [ ] **Step 2: 跑测试确认失败** → `npm run test:unit` FAIL
+- [x] **Step 2: 跑测试确认失败** → `npm run test:unit` FAIL
 
-- [ ] **Step 3: 实现 classifyIncoming（放 importService.ts；标题相似度 import 自 titleSimilarity.ts 的既有导出——先打开该文件确认函数名与签名再引用）**
+- [x] **Step 3: 实现 classifyIncoming（放 importService.ts；标题相似度 import 自 titleSimilarity.ts 的既有导出——先打开该文件确认函数名与签名再引用）**
 
 ```ts
 export interface ExistingRef { key: string; doi: string; title: string; }
@@ -123,9 +123,9 @@ export function classifyIncoming(
 }
 ```
 
-- [ ] **Step 4: 跑测试确认通过** → PASS
+- [x] **Step 4: 跑测试确认通过** → PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/importService.ts test/importDedup.test.cjs
