@@ -254,7 +254,7 @@ git commit -m "feat: lint_metadata tool bridging zotero-format-metadata"
 - Modify: `src/modules/selfTest.ts`
 - Modify: `README.md`（§3 表格 TODO 列打勾）、`CLAUDE.md`（工具数 42→44）
 
-- [ ] **Step 1: 加 selfTest 场景（插件缺失路径必测——CI 环境无伴生插件也能跑）**
+- [x] **Step 1: 加 selfTest 场景（插件缺失路径必测——CI 环境无伴生插件也能跑）**
 
 ```ts
 await t.scenario("companion bridge reports missing plugin as structured result", async () => {
@@ -270,12 +270,12 @@ await t.scenario("companion bridge reports missing plugin as structured result",
 
 （`call` 为 selfTest.ts 既有的请求辅助函数——打开该文件顶部确认实际名字与签名，保持一致。）
 
-- [ ] **Step 2: 部署 + 全量回归**
+- [ ] **Step 2: 部署 + 全量回归**（跳过——由主会话在集成阶段做，见留验清单；本地 `npm run build` 已过）
 
 Run: `npm run build && node scripts/deploy-live.mjs`，然后 `run_javascript`: `return await Zotero.ZoteroAgentSelfTest.run('protocol')`
 Expected: 全部 passed（含新场景），0 failed
 
-- [ ] **Step 3: 更新 README §3 表格与 CLAUDE.md 工具数，Commit**
+- [ ] **Step 3: 更新 README §3 表格与 CLAUDE.md 工具数，Commit**（README/CLAUDE.md 按 worktree 约束跳过，集成阶段统一改；selfTest 已单独 commit）
 
 ```bash
 git add src/modules/selfTest.ts README.md CLAUDE.md
