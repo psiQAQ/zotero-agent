@@ -139,7 +139,7 @@ git commit -m "feat: incoming-item dedup classifier for bulk import"
 **Files:**
 - Modify: `src/modules/importService.ts`
 
-- [ ] **Step 1: 实现（骨架，Task 1 探明的字段形状代入）**
+- [x] **Step 1: 实现（骨架，Task 1 探明的字段形状代入）**
 
 ```ts
 export async function importBibliography(opts: {
@@ -173,9 +173,9 @@ export async function importBibliography(opts: {
 
 **部分导入的实现决策**是本任务唯一硬点：优先尝试「把 `toImport` 子集序列化为 CSL-JSON 字符串 → 再走一次 Import translator 真写」（干净、无删除操作）；若 CSL-JSON 往返丢字段严重（Task 1 可验），退化为全量导入后移 skip 项进回收站（`deleted=true`，非 eraseTx）。
 
-- [ ] **Step 2: build** → `npm run build` 零错误
+- [x] **Step 2: build** → `npm run build` 零错误
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/modules/importService.ts

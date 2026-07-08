@@ -1,5 +1,9 @@
 /** Identifier-based import using Zotero's own translation engine (same path as the UI's "Add Item by Identifier"). */
 
+import { classifyIncoming, type ExistingRef } from "./importDedup";
+
+declare const IOUtils: any; // privileged global (same trust as pdfProcessor.ts)
+
 /** LLMs pass arrays as JSON strings or comma-joined strings; accept all shapes (54yyyu lesson). */
 export function normalizeStringList(v: unknown): string[] {
   if (v == null) return [];
@@ -194,4 +198,125 @@ export async function findMissingPdfs(opts: {
     }
   }
   return { ...summary, fetched: results.filter((r) => r.attached).length, results };
+}
+
+/** One-shot {key, doi, title} snapshot of all regular items (trash excluded) for dedup matching. */
+export async function snapshotExistingRefs(libraryID: number): Promise<ExistingRef[]> {
+  const items = await resolveScopeItems(libraryID);
+  return items
+    .filter((it: any) => !it.deleted) // resolveScopeItems does not exclude trashed items
+    .map((it: any) => ({
+      key: it.key,
+      doi: String(it.getField("DOI") || ""),
+      title: String(it.getField("title") || ""),
+    }));
+}
+
+/**
+ * Bulk import from BibTeX / RIS / CSL-JSON text (format auto-detected by Zotero's
+ * import translators). Dry-run parses without writing (`translate({libraryID: false})`)
+ * and returns a per-entry import/skip plan; confirm re-imports only the non-duplicate
+ * subset via a CSL-JSON roundtrip (recon 2026-07-08: itemToCSLJSON accepts the dry-run
+ * raw JSON directly and the roundtrip is field-lossless for tested types — chosen over
+ * "import everything then trash the skips", which leaves trash noise and half-failure residue).
+ */
+export async function importBibliography(opts: {
+  content?: string; // exactly one of content / filePath (validated by the tool handler)
+  filePath?: string;
+  collectionKey?: string;
+  confirm: boolean; // false = dry-run
+  libraryID: number;
+}): Promise<any> {
+  // Resolve the collection BEFORE any work — bad specs must fail early (54yyyu discipline).
+  const collectionIDs: number[] = [];
+  if (opts.collectionKey) {
+    const cid = Zotero.Collections.getIDFromLibraryAndKey(opts.libraryID, opts.collectionKey);
+    if (!cid) throw new Error(`Collection not found in library ${opts.libraryID}: ${opts.collectionKey}`);
+    collectionIDs.push(cid); // translate() takes numeric collectionIDs, not 8-char keys (recon-verified)
+  }
+
+  const text = opts.content ?? String(await IOUtils.readUTF8(opts.filePath!));
+  const tr = new Zotero.Translate.Import();
+  tr.setString(text);
+  const translators = await tr.getTranslators();
+  if (!translators.length) {
+    return { error: "unrecognized format", hint: "Supported: BibTeX / RIS / CSL-JSON" };
+  }
+  tr.setTranslator(translators[0]);
+  const format = (translators[0] as any).label;
+  // libraryID:false = parse only, nothing written (public Zotero translation behavior).
+  const parsed: any[] = await tr.translate({ libraryID: false } as any);
+
+  const existing = await snapshotExistingRefs(opts.libraryID);
+  const plan = parsed.map((p: any) => ({
+    title: p.title || "",
+    doi: p.DOI || "", // recon: the DOI field is absent entirely (not "") when missing
+    ...classifyIncoming({ doi: p.DOI || "", title: p.title || "" }, existing),
+  }));
+
+  if (!opts.confirm) {
+    const willImport = plan.filter((p) => p.action === "import").length;
+    return {
+      dryRun: true,
+      format,
+      parsed: parsed.length,
+      willImport,
+      willSkip: plan.length - willImport,
+      plan,
+    };
+  }
+
+  // Partial import via CSL-JSON roundtrip: convert only the toImport subset, honestly
+  // reclassifying entries the roundtrip cannot carry (rare item types) as skips.
+  const cslItems: any[] = [];
+  for (let i = 0; i < parsed.length; i++) {
+    if (plan[i].action !== "import") continue;
+    try {
+      const csl = (Zotero.Utilities as any).Item.itemToCSLJSON(parsed[i]);
+      if (!csl || (plan[i].title && !csl.title)) throw new Error("title lost in CSL conversion");
+      csl.id = csl.id || `import-${i}`; // CSL-JSON requires id; RIS-parsed items carry none
+      cslItems.push(csl);
+    } catch (e: any) {
+      plan[i].action = "skip";
+      plan[i].reason = "csl-roundtrip-unsupported";
+      (plan[i] as any).detail = e?.message ?? String(e);
+    }
+  }
+
+  let savedItems: any[] = [];
+  if (cslItems.length) {
+    const wr = new Zotero.Translate.Import();
+    wr.setString(JSON.stringify(cslItems));
+    const wTranslators = await wr.getTranslators();
+    if (!wTranslators.length) throw new Error("CSL-JSON re-import translator not found");
+    wr.setTranslator(wTranslators[0]);
+    // Returns the SAVED Zotero.Item instances (recon-verified) — keys read from these.
+    savedItems = await wr.translate({ libraryID: opts.libraryID, collections: collectionIDs } as any);
+  }
+
+  // Write-then-verify (repo lesson: never trust the translate promise alone).
+  const imported: any[] = [];
+  let collectionsVerified = true;
+  for (const it of savedItems) {
+    const reread = await Zotero.Items.getAsync(it.id);
+    imported.push({ itemKey: reread.key, title: reread.getField("title") });
+    if (collectionIDs.length && !collectionIDs.every((id) => reread.getCollections().includes(id))) {
+      collectionsVerified = false;
+    }
+  }
+
+  const result: any = {
+    format,
+    parsed: parsed.length,
+    imported,
+    skipped: plan.filter((p) => p.action === "skip"),
+  };
+  if (imported.length !== cslItems.length) {
+    result.warning = `expected ${cslItems.length} imports, library reports ${imported.length}`;
+  }
+  if (opts.collectionKey) {
+    result.collectionKey = opts.collectionKey;
+    result.collectionsVerified = collectionsVerified;
+  }
+  return result;
 }
