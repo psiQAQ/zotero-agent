@@ -1,6 +1,6 @@
 // Install a local XPI into the live Zotero (reached via the zotero MCP) in one
 // shot: reads the PSK from the local Claude MCP config, base64-ships the XPI
-// through the run_javascript tool into the remote /tmp, then self-upgrades.
+// through the run_javascript tool into the Zotero-side temp dir, then self-upgrades.
 // Two uses:
 //   node scripts/deploy-live.mjs               # dev debug: install the freshly built XPI (run `npm run build` first)
 //   node scripts/deploy-live.mjs path/to.xpi   # install any local XPI (e.g. one a user downloaded)
@@ -12,7 +12,6 @@ const XPI = process.argv[2]
   ? resolve(process.argv[2])
   : fileURLToPath(new URL("../.scaffold/build/zotero-agent.xpi", import.meta.url));
 if (!existsSync(XPI)) throw new Error(`XPI not found: ${XPI}`);
-const REMOTE_PATH = "/tmp/zotero-agent-deploy.xpi";
 
 const claudeJson = `${process.env.USERPROFILE || process.env.HOME}/.claude.json`;
 const cfg = JSON.parse(readFileSync(claudeJson, "utf8"));
@@ -46,12 +45,17 @@ const code = [
   `const bin = atob(b64);`,
   `const bytes = new Uint8Array(bin.length);`,
   `for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);`,
-  `await IOUtils.write(${JSON.stringify(REMOTE_PATH)}, bytes);`,
-  `const stat = await IOUtils.stat(${JSON.stringify(REMOTE_PATH)});`,
-  `return { written: bytes.length, onDisk: stat.size };`,
+  // Let the Zotero side pick its own temp dir so this works on any OS.
+  `const path = PathUtils.join(PathUtils.tempDir, "zotero-agent-deploy.xpi");`,
+  `await IOUtils.write(path, bytes);`,
+  `const stat = await IOUtils.stat(path);`,
+  `const url = Services.io.newFileURI(Zotero.File.pathToFile(path)).spec;`,
+  `return { written: bytes.length, onDisk: stat.size, url };`,
 ].join("\n");
 
-console.log("shipping", b64.length, "b64 chars →", REMOTE_PATH);
-console.log(await callTool("run_javascript", { code, timeout_ms: 120000 }));
-console.log(await callTool("install_plugin_from_url", { url: `file://${REMOTE_PATH}`, self_upgrade: true }));
+console.log("shipping", b64.length, "b64 chars → Zotero temp dir");
+const shipped = JSON.parse(await callTool("run_javascript", { code, timeout_ms: 120000 }));
+if (shipped.error || !shipped.result?.url) throw new Error(`ship failed: ${JSON.stringify(shipped.error ?? shipped)}`);
+console.log("shipped:", shipped.result);
+console.log(await callTool("install_plugin_from_url", { url: shipped.result.url, self_upgrade: true }));
 console.log("self-upgrade scheduled — wait ~5s, then verify the addon version via run_javascript/AddonManager.");

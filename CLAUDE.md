@@ -22,11 +22,14 @@
 
 ## 3. 开发循环（build + 部署）
 
-改代码 → `npm run build`（`zotero-plugin build` + `tsc --noEmit`，产物 `.scaffold/build/zotero-agent.xpi`）→ `node scripts/deploy-live.mjs`（xpi base64 经 `run_javascript` 写入 Zotero 端 `/tmp` + 自升级，~5s 断连后即新版）。
+改代码 → `npm run build`（`zotero-plugin build` + `tsc --noEmit`，产物 `.scaffold/build/zotero-agent.xpi`）→ `node scripts/deploy-live.mjs`（xpi base64 经 `run_javascript` 写入 Zotero 端临时路径 + 自升级，~5s 断连后即新版）。
 
 - `deploy-live.mjs` 也能装任意 xpi：`node scripts/deploy-live.mjs 路径/xxx.xpi`（如使用者下载的 xpi）。它依赖 zotero MCP 通道（PSK），是"已装本插件后换版 / 升级"的工具；**首次裸装**仍需手动把 xpi 拖进 Zotero
-- 回归：`run_javascript` 里 `return await Zotero.ZoteroAgentSelfTest.run('protocol')`（约 26 场景全栈 selfTest）
-- 本地单测：`npm run test:unit`
+
+### 测试
+
+- **本地单测**：`npm run test:unit` —— `test/*.test.cjs` 纯函数单测（node 直跑，无框架，runner `scripts/unit-test.mjs`），覆盖 auth / eval / HTTP 字节读取 / MCP 协议 / 元数据合并 / PDF 识别与解析器 / 标题相似度 / hybrid search 等模块
+- **部署后全栈回归**：`src/modules/selfTest.ts`，startup 时挂载为 `Zotero.ZoteroAgentSelfTest`。约 26 场景：协议层（initialize 版本协商、401/403、-32601/-32602、`isError` 语义）+ 工具层（import 幂等、写类工具 dry-run 默认、搜索降级级联、CJK mojibake 回归、pdf resolvers 往返等）。版本更新部署后跑：`run_javascript` 里 `return await Zotero.ZoteroAgentSelfTest.run('protocol')`；`.list()` 列可用套件
 
 ## 4. 发布流程（版本控制 + 云端 CI + update.json）
 
