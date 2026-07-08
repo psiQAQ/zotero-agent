@@ -18,7 +18,7 @@
 - Create: `src/modules/preprintService.ts`
 - Test: `test/preprintService.test.cjs`
 
-- [ ] **Step 1: 写失败单测**
+- [x] **Step 1: 写失败单测**
 
 ```js
 // test/preprintService.test.cjs（模块加载方式照抄 test/metadataMerge.test.cjs 的现有约定）
@@ -39,11 +39,11 @@ assert.strictEqual(extractArxivId("https://example.com"), null);
 console.log("preprintService: ok");
 ```
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test:unit` → Expected: FAIL（模块不存在）
 
-- [ ] **Step 3: 实现纯函数**
+- [x] **Step 3: 实现纯函数**
 
 ```ts
 // src/modules/preprintService.ts
@@ -69,9 +69,9 @@ export function isPreprintCandidate(f: ItemFacts): boolean {
 }
 ```
 
-- [ ] **Step 4: 跑测试确认通过** → `npm run test:unit` PASS
+- [x] **Step 4: 跑测试确认通过** → `npm run test:unit` PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/preprintService.ts test/preprintService.test.cjs
