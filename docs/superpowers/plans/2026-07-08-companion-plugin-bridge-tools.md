@@ -68,7 +68,7 @@ git commit -m "docs: record companion plugin API reconnaissance results"
 - Create: `src/modules/companionBridge.ts`
 - Test: `test/companionBridge.test.cjs`
 
-- [ ] **Step 1: 写失败单测（纯函数部分：缺插件时的结构化返回）**
+- [x] **Step 1: 写失败单测（纯函数部分：缺插件时的结构化返回）**
 
 ```js
 // test/companionBridge.test.cjs
@@ -89,12 +89,12 @@ console.log("companionBridge: ok");
 
 > 注意：先打开 `test/metadataMerge.test.cjs` 看本仓库单测怎么 require 被测源码（现有约定优先），照抄其加载方式；上面的 require 路径仅为占位示意，**以现有测试的实际约定为准**。
 
-- [ ] **Step 2: 跑测试确认失败**
+- [x] **Step 2: 跑测试确认失败**
 
 Run: `npm run test:unit`
 Expected: FAIL（companionBridge 模块不存在）
 
-- [ ] **Step 3: 实现 companionBridge.ts**
+- [x] **Step 3: 实现 companionBridge.ts**
 
 ```ts
 // src/modules/companionBridge.ts
@@ -131,12 +131,12 @@ export async function detectCompanion(plugin: string, addonId: string): Promise<
 // export async function formatMetadataLint(items: Zotero.Item[], rules?: string[]): Promise<...>
 ```
 
-- [ ] **Step 4: 跑测试确认通过**
+- [x] **Step 4: 跑测试确认通过**
 
 Run: `npm run test:unit`
 Expected: PASS（新增 companionBridge 断言全绿）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/modules/companionBridge.ts test/companionBridge.test.cjs
