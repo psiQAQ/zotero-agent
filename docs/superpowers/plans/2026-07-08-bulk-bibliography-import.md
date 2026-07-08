@@ -189,7 +189,7 @@ git commit -m "feat: importBibliography service (parse, dedup-plan, confirm-writ
 **Files:**
 - Modify: `src/modules/streamableMCPServer.ts`
 
-- [ ] **Step 1: schema**
+- [x] **Step 1: schema**
 
 ```ts
 {
@@ -208,13 +208,13 @@ git commit -m "feat: importBibliography service (parse, dedup-plan, confirm-writ
 },
 ```
 
-- [ ] **Step 2: handler：write.enabled 门禁（confirm 分支）照抄 `case 'import_by_identifier'`（1614 行附近）开头；参数互斥校验（content XOR filePath）**
+- [x] **Step 2: handler：write.enabled 门禁（confirm 分支）照抄 `case 'import_by_identifier'`（1614 行附近）开头；参数互斥校验（content XOR filePath）**
 
 - [ ] **Step 3: 部署 + 端到端验证**
 
 `npm run build && node scripts/deploy-live.mjs`。用一段含 3 条目（其中 1 条是库里已有 DOI）的 BibTeX：dry-run 应报 `willImport:2, willSkip:1`；confirm 后回读确认 2 条落库入集合、skip 项未重复；再跑一次同样输入应 `willImport:0`（幂等）。测试条目移入回收站清理。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/modules/streamableMCPServer.ts

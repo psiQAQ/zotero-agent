@@ -26,7 +26,7 @@ import { runUserJavaScript } from "./evalTool";
 import { negotiateProtocolVersion, LATEST_PROTOCOL_VERSION } from './mcpProtocol';
 import { config } from "../../package.json";
 import { reloadPlugin, installPluginFromUrl } from "./devTools";
-import { importByIdentifier, findMissingPdfs, normalizeStringList } from "./importService";
+import { importByIdentifier, findMissingPdfs, normalizeStringList, importBibliography } from "./importService";
 import { checkRetractions, findRelatedPapers } from "./scholarlyService";
 import { synthesizeAnnotations } from "./synthesisService";
 import { findDuplicates, mergeDuplicates, batchUpdateTags } from "./maintenanceService";
@@ -1301,6 +1301,20 @@ export class StreamableMCPServer {
           },
         },
       },
+      {
+        name: 'import_bibliography',
+        description: 'Bulk-import references from BibTeX / RIS / CSL-JSON (pasted text or a local file path). Format auto-detected via Zotero import translators. Idempotent: items already in the library (DOI match, or title similarity ≥0.86) are skipped. Dry-run by default — returns a per-entry plan (import/skip + reason); confirm:true performs the import (requires write.enabled). Follow up with find_missing_pdfs to fetch PDFs.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string', description: 'Bibliography text (BibTeX / RIS / CSL-JSON). Mutually exclusive with filePath.' },
+            filePath: { type: 'string', description: 'Absolute path to a .bib / .ris / .json file on the Zotero machine.' },
+            collectionKey: { type: 'string', description: 'Target collection for imported items' },
+            confirm: { type: 'boolean', description: 'false (default) = dry-run plan; true = import' },
+            libraryID: { type: 'number' },
+          },
+        },
+      },
     ];
 
     // Filter out semantic tools if semantic search is disabled
@@ -1621,6 +1635,28 @@ export class StreamableMCPServer {
           }
           result = await importByIdentifier({
             ...args,
+            libraryID: args?.libraryID ?? Zotero.Libraries.userLibraryID,
+          });
+          break;
+        }
+
+        case 'import_bibliography': {
+          if (args?.confirm === true) {
+            const writeEnabledBib = Zotero.Prefs.get('extensions.zotero.zotero-agent.write.enabled', true);
+            if (writeEnabledBib !== true) {
+              throw new Error('Write operations are currently disabled. Please go to Zotero → Tools → Add-ons → Zotero Agent → Preferences, and enable "Write Operations" to use this feature.');
+            }
+          }
+          const hasContent = typeof args?.content === 'string' && args.content.trim() !== '';
+          const hasFilePath = typeof args?.filePath === 'string' && args.filePath.trim() !== '';
+          if (hasContent === hasFilePath) {
+            throw new Error('Provide exactly one of content or filePath');
+          }
+          result = await importBibliography({
+            content: hasContent ? args.content : undefined,
+            filePath: hasFilePath ? args.filePath : undefined,
+            collectionKey: args?.collectionKey,
+            confirm: args?.confirm === true,
             libraryID: args?.libraryID ?? Zotero.Libraries.userLibraryID,
           });
           break;
