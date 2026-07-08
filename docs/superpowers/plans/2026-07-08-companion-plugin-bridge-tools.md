@@ -284,7 +284,37 @@ git commit -m "feat: selfTest + docs for companion bridge tools"
 
 ---
 
-## 附录：侦察结果（Task 1 完成后回填）
+## 附录：侦察结果（2026-07-08 真机 Zotero 9.0.4 运行时探测 + refs submodule 源码核对；未做真实调用——只读侦察）
 
-- jasminum addon id: `<待回填>`；命名空间: `<待回填>`；抓取入口签名: `<待回填>`
-- format-metadata addon id: `<待回填>`；lint 入口签名: `<待回填>`；规则 id 清单: `<待回填>`
+### jasminum
+
+- **addon id**: `jasminum@linxzh.com`，v1.1.37，active。挂载点 `Zotero.Jasminum`（zotero-plugin-template addon 实例：`{data, hooks, api, taskRunner}`）。
+- **批量抓取入口**：`Zotero.Jasminum.taskRunner.createAndAddTask(item, type, silent) => Promise<taskId>`。TaskRunner 顺序执行且 `addTask` 内部直接 `await runTask(task)`——**await resolve 时该条抓取已执行完**（成功或 `status:"fail"`），无需另行轮询。
+  - `type`: `"attachment"` | `"snapshot"` → 元数据抓取（metaScraper，即本工具要的）；`"local"` | `"remote"` → 附件查找（attachmentScraper，与本工具无关）。
+  - 菜单「抓取期刊元数据」handler 原样（源码 `refs/metadata-enrich/jasminum/src/modules/menu.ts:24`）：
+    ```js
+    for (const item of Zotero.getActiveZoteroPane().getSelectedItems()) {
+      await addon.taskRunner.createAndAddTask(item, isChineseTopAttachment(item) ? "attachment" : "snapshot");
+    }
+    ```
+  - **适用对象不是 regular item**（`src/utils/detect.ts`）：`isChineseTopAttachment` = `item.isAttachment() && item.isTopLevelItem() && 文件名含≥3汉字且扩展名 pdf/caj/kdh/nh`；`isChinsesSnapshot` = snapshot 附件或 webpage 条目且标题含「- 中国知网」。bridge 的 scope 筛选必须按这个形状（普通中文 journalArticle 条目不走此路径）。
+  - `silent` 传 truthy 时 `task.resultIndex = 0`（多搜索结果自动取第一个，不弹选择框）——编程调用应传 `true`。上游 TS 签名标 `silent?: false` 是类型标注错误，运行时逻辑是 truthy 检查。
+  - 状态回读：`taskRunner.getTaskById(id).status`（`"fail"` / `"multiple_results"` / 成功态）。
+- `Zotero.Jasminum.api` 只有 `getOutlineFromPDF / requestDocument / HeadlessBrowserService / createHeadlessBrowser` 等，与元数据抓取无关。`mergeName / splitName / updateCNKICite` 在打包闭包内，运行时不可直接调用（只能经菜单 DOM 触发，不建议依赖）。
+- 本次侦察只读，未做 Step 4 的真实调用验证——留给 Task 3 Step 4 真机验证时一并做。dry-run 语义建议：报告 scope 内符合「可抓取形状」（顶层中文附件/知网 snapshot）的条目清单。
+
+### zotero-format-metadata (Linter)
+
+- **addon id**: `zotero-format-metadata@northword.cn`，v3.3.0，active。挂载点 `Zotero.Linter`（`data.config.addonInstance === "Linter"`，prefsPrefix `extensions.zotero.formatmetadata`）。
+- **lint 入口**：`Zotero.Linter.hooks.onLintInBatch(ruleIDs, items)`（真机 toString 与源码 `hooks.ts:148` 一致）：
+  - `ruleIDs: Arrayable<ID | "standard">`——`"standard"` = 全部**已启用**的标准规则（`Rules.getEnabledStandard()`，按 pref `rule.<id>` 过滤）；显式 id 走 `Rules.getByID(id)`，**tool-* 规则只能显式按 id 调**（永不含在 standard 内）。
+  - `items: Zotero.Item[] | "item" | "collection"`——传 items 数组即可编程调用（不依赖 UI 选中）；内部自动 `filter(isRegularItem)`。
+  - `onUpdateInBatch` 是 deprecated 别名（`hooks.ts:184`: `const onUpdateInBatch = onLintInBatch`），勿用。
+  - **返回 void（fire-and-forget）**：内部 `runner.add({items, rules})` 进并发队列；进度/结果在 `Zotero.Linter.runner.stats`（`{total, current, pass, error, records}`）。bridge 若要同步返回结果需轮询 stats（total 达标且 current===total），或诚实返回「已入队」。
+  - **无 preview API**：规则直接改字段。`lint_metadata` 的 dry-run 只能退化为「报告将处理的条目×规则清单」（与 Task 4 Step 2 预案一致）。
+- **规则 id 清单**（v3.3.0，源码 `rules/index.ts` register 数组 + 各规则文件 `id:` 字段，与真机 pref 枝 `extensions.zotero.formatmetadata.rule.*` 互相印证；40 standard + 7 tool）：
+  - correct-*（24）：`correct-bookTitle-sentence-case`, `correct-conference-abbr`, `correct-creators-case`, `correct-creators-pinyin`, `correct-creators-punctuation`, `correct-date-format`, `correct-doi-long`, `correct-edition-numeral`, `correct-extra-order`, `correct-filing-date-format`, `correct-issue-date-format`, `correct-pages-connector`, `correct-pages-range`, `correct-priority-date-format`, `correct-proceedingsTitle-sentence-case`, `correct-publication-title-alias`, `correct-publication-title-case`, `correct-shortTitle-sentence-case`, `correct-thesis-type`, `correct-title-chemical-formula`, `correct-title-punctuation`, `correct-title-sentence-case`, `correct-university-punctuation`, `correct-volume-numeral`（注意部分 id 是 camelCase 混 kebab，如 `correct-bookTitle-sentence-case`——照抄勿"规范化"）
+  - no-*（10）：`no-article-webpage`, `no-doi-prefix`, `no-field-misuse`, `no-issue-extra-zeros`, `no-item-duplication`, `no-journal-preprint`, `no-pages-extra-zeros`, `no-title-trailing-dot`, `no-value-nullish`, `no-volume-extra-zeros`
+  - require-*（6）：`require-creators`, `require-doi`, `require-journal-abbr`, `require-language`, `require-short-title`, `require-university-place`
+  - tool-*（7，只能显式调）：`tool-clean-extra`, `tool-creators-ext`, `tool-csl-helper`（文件名是 tool-csl-extra-helper，id 以此为准）, `tool-get-short-doi`, `tool-set-language`, `tool-title-guillemet`, `tool-update-metadata`
+  - 运行时枚举 standard 规则的途径：`Services.prefs.getBranch("extensions.zotero.formatmetadata.").getChildList("")` 里 `rule.<id>` 键（剔除含二级点号的子选项，如 `rule.require-journal-abbr.usefull`）。

@@ -43,6 +43,32 @@ git add docs/superpowers/plans/2026-07-08-bulk-bibliography-import.md
 git commit -m "docs: record Zotero.Translate.Import behavior probe results"
 ```
 
+**侦察结果（2026-07-08，经 run_javascript 在真机 Zotero 9.0.4 实测；测试条目已清理）**：
+
+1. **dry-run 路径**（`translate({ libraryID: false })`）三种格式全部正常自动识别：
+   - BibTeX → translator `"BibTeX"`（9cb70025-a888-4a29-a210-93ec52da40d4）；RIS → `"RIS"`（32d59d2d-b65a-4da4-b0a3-bdd3cfb979e7）；CSL-JSON → `"CSL JSON"`（bc03b4fe-436d-4a1f-ba59-de4d2d7a63f7）。
+   - 返回 item JSON 的确切形状（三种格式一致）：
+     ```json
+     {
+       "itemType": "journalArticle",            // Zotero 类型名字符串（@inproceedings → "conferencePaper"）
+       "creators": [{ "firstName": "John", "lastName": "Doe", "creatorType": "author" }],
+       "title": "Sample One", "DOI": "10.1234/s1", "date": "2024",
+       "notes": [], "tags": [], "seeAlso": [], "attachments": [],
+       "itemID": "a1"                            // BibTeX cite key / CSL id；RIS 无此字段。非 Zotero key，查重时忽略
+     }
+     ```
+     CSL-JSON 来源的 creators 会多带 `creatorTypeID`。**DOI 缺失时字段整个不存在**（不是空串），查重取值写 `p.DOI || ""`。
+2. **真写路径**（`translate({ libraryID, collections: [<collectionID>] })`）：
+   - 返回**已保存的 Zotero.Item 实例数组**（有 `.key`/`.id`，可直接 `isRegularItem()`）——写后回读直接拿返回值的 key。
+   - `collections` 参数吃**数字 collectionID**（不是 8 位 key）；实测条目正确落库并入集合。
+   - 两个落库行为差异（dry-run JSON 保留原文，落库时才转换）：英文 title 被转 **sentence case**（"MCP Recon Real Write One" → "MCP recon real write one"）；pages `34--56` → `34–56`（en-dash）。查重比对 title 用大小写不敏感的相似度即可（既有 titleSimilarity 满足）。
+3. **部分导入决策（Task 3 的硬点）：推荐「CSL-JSON 往返」，实测无损**：
+   - `Zotero.Utilities.Item.itemToCSLJSON(parsedJson)` **直接接受 dry-run 返回的 raw JSON**（无需先落库），产出标准 CSL-JSON（`type` / `author[{family,given}]` / `issued{date-parts}` / `container-title` / `page` / `DOI` / `abstract`）。
+   - 该 CSL-JSON 字符串再走一次 Import translator 真写，与 BibTeX 直接导入的落库结果**逐字段一致**（title / 2 位 creators / date / DOI / abstract / volume / pages / publicationTitle 全保留；title 的 sentence-case 两条路径行为相同，非往返损耗）。
+   - 理由：干净、无删除操作、无「全量导入再移 skip 项进回收站」的中间态（后者会在库里留下回收站噪音且有半程失败残留风险）——**弃用回收站方案**。
+   - 边界：仅实测 journalArticle；CSL 类型集较窄，罕见 itemType（preprint / dataset 等）映射可能有损。实现时对每条 toImport 包 try/catch：`itemToCSLJSON` 失败或关键字段（title）丢失的条目如实报 `{action:"skip", reason:"csl-roundtrip-unsupported"}`，不静默降级。
+4. 测试痕迹清理确认：临时条目 `J7K3X2H4`、`9FUAPLID` 已移入回收站（`deleted=true`，未 erase，均回读确认 `inTrash:true`）；临时集合 `MCP-RECON-TEST`（WD2LAMU8 / id 86）确认为空后已 `eraseTx()`，按 id 与按名回读均已不存在。
+
 ---
 
 ### Task 2: 幂等查重纯函数 + 单测
