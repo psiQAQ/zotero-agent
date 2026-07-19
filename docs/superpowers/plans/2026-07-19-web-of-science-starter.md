@@ -114,10 +114,10 @@ Steps:
 - [x] `npm run lint:check`：已执行；全仓 Prettier 基线含 86 个既有文件，命令在 ESLint 前失败。范围 ESLint 的报错也均位于本次未改的既有行；新增 `wosService.ts` 与 selfTest 修改无 ESLint 报错。
 - [x] `node scripts/deploy-live.mjs`：XPI 经 MCP 自升级安装，写入大小与磁盘回读一致。
 - [x] MCP 回连后验证 Add-on active、`tools/list` 与 `Zotero.ZoteroAgentSelfTest.run('protocol')`：29 passed、0 failed、3 skipped。
-- [ ] 等待用户把 API Key 填入 Zotero 面板并选择准确 plan；不得要求用户在聊天中提供 Key。
-- [ ] 用“测试连接”执行 1 条请求，再用 MCP 调用一次最多 1 条的真实查询。
-- [ ] 回读本地请求计数，确认 Key 不出现在日志/响应，更新双语指南的验证状态。
-- [ ] 执行 `superpowers:verification-before-completion` 并按 `finishing-a-development-branch` 收尾。
+- [x] 用户已把 API Key 填入 Zotero 面板并选择 Free Trial；Key 未进入聊天或仓库。
+- [x] “测试连接”执行 1 条请求；MCP 以 `maxResults: 1` 完成一次真实查询。
+- [x] 回读本地请求计数为 2/50；确认 Key/Header 不在响应中；双语指南已更新。
+- [x] 执行 `superpowers:verification-before-completion`：100/100 unit、build、protocol selfTest 29/0/3；按 `finishing-a-development-branch` 进入集成选择。
 
 ## 进度
 
@@ -131,6 +131,8 @@ Steps:
 | 2026-07-19 | Task 4 in progress | `import_by_identifier` 通用路径足够，零代码修改；README/指南/CHANGELOG/AGENTS 已更新 |
 | 2026-07-19 | Task 5 waiting for Key | XPI 已经 MCP 部署；面板 DOM、工具调用错误路径、DOI/PMID/ISBN 运行时识别均通过；selfTest 29/0/3 |
 | 2026-07-19 | Tutorial updated | 根据 Clarivate Client Types 官方说明，双语指南已明确选择 Public Native/Mobile，并解释 SPA 与 Confidential 的适用边界 |
+| 2026-07-19 | Real API Passed | 面板测试连接后本地计数 1/50；MCP 最小查询命中 8,768、返回 1、使用 1 次请求；回读 2/50；Key/Header 未出现在响应 |
+| 2026-07-19 | Final verification Passed | `test:unit` 100/100；build Passed；protocol selfTest 29/0/3 且新增日志错误 0；`lint:check` 仍仅受既有 86 文件 Prettier 基线阻塞 |
 
 ## Verification
 
@@ -144,4 +146,4 @@ Steps:
 | Zotero selfTest | Passed | protocol: 29 passed、0 failed、3 skipped |
 | Preferences UI | Passed | 运行态 DOM 回读所有 WoS 控件、类型、枚举与默认值 |
 | Identifier handoff | Passed | Zotero 运行时识别 DOI、PMID、ISBN；`import_by_identifier` 零修改 |
-| Real Starter API | Waiting for user | 面板已打开，等待用户配置自己的 Key 与准确 plan |
+| Real Starter API | Passed | Free Trial；面板测试 + MCP 最小查询合计 2/50；Key/Header 未出现在响应 |

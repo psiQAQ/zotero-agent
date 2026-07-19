@@ -126,6 +126,8 @@ Prefer `identifiers.doi`, then PMID or ISBN, as input to `import_by_identifier`.
 | Service, MCP tool, and preferences UI | Implemented locally |
 | Unit tests and build | Passed (100/100; build Passed) |
 | XPI deployment and Zotero selfTest | Passed (29 passed, 0 failed, 3 skipped) |
-| Live Starter API | Pending user Key configuration in the panel |
+| Live Starter API | Passed (one panel connection test plus one minimal MCP query; local count 2/50) |
 
 Repository-wide `npm run lint:check` is currently blocked by an existing Prettier baseline affecting 86 files, including unrelated historical documents and source files. The feature-specific unit tests, TypeScript build, XPI deployment, runtime preferences DOM inspection, and protocol selfTest pass independently.
+
+The live MCP check used `TS=("graph neural network") AND PY=(2025-2026)` with `maxResults: 1`: Starter API reported 8,768 hits, and the plugin returned one normalized record using one request. Runtime readback confirmed the Free Trial plan and a local daily count of 2/50; neither the API Key nor the `X-ApiKey` header appeared in the MCP response.
