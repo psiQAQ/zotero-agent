@@ -4,6 +4,7 @@ import { ClientConfigGenerator } from "./clientConfigGenerator";
 import { generateAuthToken } from "./authGuard";
 import { syncScihubResolvers, DEFAULT_SCIHUB_SOURCES } from "./scihubSources";
 import { buildProxyPacDataUrl, isLocalhostHost } from "./scihubProxy";
+import { searchWebOfScience, WOS_PLAN_POLICIES, type WosPlan } from "./wosService";
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -293,6 +294,9 @@ function bindPrefEvents() {
   // ============ Semantic Search Toggle ============
   bindSemanticEnabledToggle(doc);
 
+  // ============ Web of Science Starter API ============
+  bindWosSettings(doc);
+
   // ============ Embedding API Settings ============
   bindEmbeddingSettings(doc);
 
@@ -304,6 +308,76 @@ function bindPrefEvents() {
 
   // ============ Rate Limit Summary ============
   updateRateLimitSummary(doc);
+}
+
+function bindWosSettings(doc: Document) {
+  const prefix = "extensions.zotero.zotero-agent.";
+  const enabled = `#zotero-prefpane-${config.addonRef}-wos-enabled`;
+  const apiKey = `#zotero-prefpane-${config.addonRef}-wos-api-key`;
+  const plan = `#zotero-prefpane-${config.addonRef}-wos-plan`;
+  const database = `#zotero-prefpane-${config.addonRef}-wos-database`;
+  const maxRecords = `#zotero-prefpane-${config.addonRef}-wos-max-records`;
+  const timeout = `#zotero-prefpane-${config.addonRef}-wos-timeout`;
+
+  bindHtmlCheckbox(doc, enabled, prefix + "wos.enabled");
+  bindHtmlInput(doc, apiKey, prefix + "wos.apiKey");
+  bindHtmlSelect(doc, plan, prefix + "wos.plan");
+  bindHtmlSelect(doc, database, prefix + "wos.database");
+  bindHtmlInput(doc, maxRecords, prefix + "wos.maxRecords", true);
+  bindHtmlInput(doc, timeout, prefix + "wos.timeoutSeconds", true);
+
+  const planEl = doc.querySelector(plan) as HTMLSelectElement | null;
+  const hintEl = doc.querySelector("#wos-plan-hint") as HTMLElement | null;
+  const statusEl = doc.querySelector("#wos-test-status") as HTMLElement | null;
+  const testButton = doc.querySelector("#test-wos-button") as HTMLButtonElement | null;
+
+  const renderPlanHint = () => {
+    const selected = (planEl?.value || "trial") as WosPlan;
+    const policy = WOS_PLAN_POLICIES[selected] ?? WOS_PLAN_POLICIES.trial;
+    if (hintEl) {
+      hintEl.textContent = `${policy.requestsPerSecond} req/s · ${policy.dailyLimit.toLocaleString()} req/day · ${policy.maxRecordsPerCall} records/call`;
+    }
+  };
+  planEl?.addEventListener("change", renderPlanHint);
+  renderPlanHint();
+
+  testButton?.addEventListener("click", async () => {
+    const keyEl = doc.querySelector(apiKey) as HTMLInputElement | null;
+    const databaseEl = doc.querySelector(database) as HTMLSelectElement | null;
+    const maxEl = doc.querySelector(maxRecords) as HTMLInputElement | null;
+    const timeoutEl = doc.querySelector(timeout) as HTMLInputElement | null;
+    if (keyEl) Zotero.Prefs.set(prefix + "wos.apiKey", keyEl.value, true);
+    if (planEl) Zotero.Prefs.set(prefix + "wos.plan", planEl.value, true);
+    if (databaseEl) Zotero.Prefs.set(prefix + "wos.database", databaseEl.value, true);
+    if (maxEl && !Number.isNaN(Number(maxEl.value))) Zotero.Prefs.set(prefix + "wos.maxRecords", Number(maxEl.value), true);
+    if (timeoutEl && !Number.isNaN(Number(timeoutEl.value))) Zotero.Prefs.set(prefix + "wos.timeoutSeconds", Number(timeoutEl.value), true);
+
+    testButton.disabled = true;
+    if (statusEl) {
+      statusEl.style.display = "block";
+      statusEl.style.color = "var(--text-2)";
+      statusEl.textContent = getString("pref-wos-test-running" as any);
+    }
+    try {
+      const result = await searchWebOfScience({
+        query: "PY=2020",
+        database: databaseEl?.value,
+        maxResults: 1,
+        detail: "short",
+      });
+      if (statusEl) {
+        statusEl.style.color = "var(--green)";
+        statusEl.textContent = `${getString("pref-wos-test-success" as any)} ${result.total} hits · ${result.usage.localRequestsToday}/${result.usage.localDailyLimit} local requests`;
+      }
+    } catch (error) {
+      if (statusEl) {
+        statusEl.style.color = "var(--red)";
+        statusEl.textContent = error instanceof Error ? error.message : String(error);
+      }
+    } finally {
+      testButton.disabled = false;
+    }
+  });
 }
 
 /**

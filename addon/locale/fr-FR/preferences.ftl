@@ -239,3 +239,23 @@ pref-scihub-proxy-text = Router les téléchargements via un proxy (uniquement S
 pref-scihub-proxy-sub = Utiliser un proxy local (ex. clash) pour les sources grises. Seuls les domaines gris l'utilisent ; le reste du réseau de Zotero n'est pas affecté. Restaure les paramètres proxy d'origine à la désactivation.
 pref-scihub-proxy-host = IP du proxy
 pref-scihub-proxy-port = Port
+
+
+pref-wos-title = Web of Science
+pref-wos-desc = Search bibliographic records through Clarivate Web of Science Starter API using your own API Key.
+pref-wos-enable-text = Enable Web of Science search
+pref-wos-enable-sub = Exposes the read-only search_web_of_science MCP tool. Queries are sent to Clarivate.
+pref-wos-api-key-label = Starter API Key
+pref-wos-api-key-hint = Stored in Zotero Preferences and sent only to api.clarivate.com in the X-ApiKey header.
+pref-wos-plan-label = API plan
+pref-wos-plan-trial = Free Trial — 1/s, 50/day, no times cited
+pref-wos-plan-member = Institutional Member — 5/s, 5,000/day
+pref-wos-plan-integration = Institutional Integration — 5/s, 20,000/day
+pref-wos-database-label = Default database
+pref-wos-max-records-label = Maximum records per call
+pref-wos-max-records-hint = The selected plan may apply a lower safety cap.
+pref-wos-timeout-label = Request timeout (seconds)
+pref-wos-test-button = Test connection
+pref-wos-test-hint = The test requests one record and consumes one API request. Local usage is a conservative estimate, not Clarivate's authoritative remaining quota.
+pref-wos-test-running = Testing Web of Science Starter API…
+pref-wos-test-success = Connection successful.

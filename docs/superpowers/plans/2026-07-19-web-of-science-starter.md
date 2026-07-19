@@ -90,11 +90,11 @@ Files:
 
 Steps:
 
-- [ ] 添加可见 prefs：enabled、apiKey、plan、database、maxRecords、timeoutSeconds。
-- [ ] 添加内部 prefs：usageDateUtc、requestsToday。
-- [ ] API Key 使用 password 输入框；plan 使用三项固定下拉框。
-- [ ] 测试连接只请求 1 条、计入本地额度，并显示 plan/本地计数，不显示 Key/Header。
-- [ ] 构建检查本地化键与类型，提交 UI 阶段。
+- [x] 添加可见 prefs：enabled、apiKey、plan、database、maxRecords、timeoutSeconds。
+- [x] 添加内部 prefs：usageDateUtc、requestsToday。
+- [x] API Key 使用 password 输入框；plan 使用三项固定下拉框。
+- [x] 测试连接只请求 1 条、计入本地额度，并显示 plan/本地计数，不显示 Key/Header。
+- [x] 构建检查本地化键与类型，提交 UI 阶段。
 
 ### Task 4：导入兼容性和发布文档
 
@@ -125,6 +125,7 @@ Steps:
 | 2026-07-19 | Task 0 in progress | 官方未公开 plan/quota 自动探测；改为 plan 下拉框与本地保护 |
 | 2026-07-19 | Task 1 Passed | TDD red 已确认；WoS service 场景 9 个，总计 100/100；build Passed |
 | 2026-07-19 | Task 2 code Passed | MCP schema/handler/filter 与 selfTest 场景已加入；100/100；build Passed；selfTest 待部署执行 |
+| 2026-07-19 | Task 3 code Passed | prefs、password Key、三档 plan、数据库、上限、超时及最小连接测试已实现；build 无 i10n warning |
 
 ## Verification
 

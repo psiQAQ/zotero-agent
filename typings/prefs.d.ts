@@ -14,6 +14,14 @@ declare namespace _ZoteroTypes {
       "scihub.proxy.enabled": boolean;
       "scihub.proxy.host": string;
       "scihub.proxy.port": number;
+      "wos.enabled": boolean;
+      "wos.apiKey": string;
+      "wos.plan": string;
+      "wos.database": string;
+      "wos.maxRecords": number;
+      "wos.timeoutSeconds": number;
+      "wos.usageDateUtc": string;
+      "wos.requestsToday": number;
     };
   }
 }

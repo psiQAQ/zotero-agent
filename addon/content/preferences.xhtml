@@ -33,6 +33,13 @@
     <!-- Semantic search settings -->
     <preference id="extensions.zotero.zotero-agent.semantic.enabled" name="extensions.zotero.zotero-agent.semantic.enabled" type="bool" />
     <preference id="extensions.zotero.zotero-agent.semantic.autoUpdate" name="extensions.zotero.zotero-agent.semantic.autoUpdate" type="bool" />
+    <!-- Web of Science Starter API settings -->
+    <preference id="extensions.zotero.zotero-agent.wos.enabled" name="extensions.zotero.zotero-agent.wos.enabled" type="bool" />
+    <preference id="extensions.zotero.zotero-agent.wos.apiKey" name="extensions.zotero.zotero-agent.wos.apiKey" type="string" />
+    <preference id="extensions.zotero.zotero-agent.wos.plan" name="extensions.zotero.zotero-agent.wos.plan" type="string" />
+    <preference id="extensions.zotero.zotero-agent.wos.database" name="extensions.zotero.zotero-agent.wos.database" type="string" />
+    <preference id="extensions.zotero.zotero-agent.wos.maxRecords" name="extensions.zotero.zotero-agent.wos.maxRecords" type="int" />
+    <preference id="extensions.zotero.zotero-agent.wos.timeoutSeconds" name="extensions.zotero.zotero-agent.wos.timeoutSeconds" type="int" />
   </preferences>
 
   <html:style>
@@ -557,6 +564,81 @@
             <html:div class="zmp-p-b" id="config-guide" data-l10n-id="pref-config-guide-placeholder"></html:div>
           </html:div>
         </html:div>
+      </html:div>
+
+      <!-- ③ Web of Science -->
+      <html:div class="zmp-s">
+        <html:div class="zmp-s-title" data-l10n-id="pref-wos-title"></html:div>
+        <html:div class="zmp-s-desc" data-l10n-id="pref-wos-desc"></html:div>
+
+        <html:div class="zmp-sw">
+          <html:div>
+            <html:div class="zmp-sw-text" data-l10n-id="pref-wos-enable-text"></html:div>
+            <html:div class="zmp-sw-sub" data-l10n-id="pref-wos-enable-sub"></html:div>
+          </html:div>
+          <html:label class="zmp-tog">
+            <html:input type="checkbox" id="zotero-prefpane-__addonRef__-wos-enabled"
+              preference="extensions.zotero.zotero-agent.wos.enabled" />
+            <html:span class="zmp-tog-track"></html:span>
+          </html:label>
+        </html:div>
+
+        <html:div class="zmp-fg">
+          <html:label class="zmp-fl" data-l10n-id="pref-wos-api-key-label"></html:label>
+          <html:input type="password" class="zmp-fi" id="zotero-prefpane-__addonRef__-wos-api-key"
+            preference="extensions.zotero.zotero-agent.wos.apiKey" autocomplete="off" />
+          <html:div class="zmp-fh" data-l10n-id="pref-wos-api-key-hint"></html:div>
+        </html:div>
+
+        <html:div class="zmp-f2" style="margin-top:12px">
+          <html:div class="zmp-fg">
+            <html:label class="zmp-fl" data-l10n-id="pref-wos-plan-label"></html:label>
+            <html:select class="zmp-fi" id="zotero-prefpane-__addonRef__-wos-plan"
+              preference="extensions.zotero.zotero-agent.wos.plan">
+              <html:option value="trial" data-l10n-id="pref-wos-plan-trial"></html:option>
+              <html:option value="institutional-member" data-l10n-id="pref-wos-plan-member"></html:option>
+              <html:option value="institutional-integration" data-l10n-id="pref-wos-plan-integration"></html:option>
+            </html:select>
+            <html:div class="zmp-fh" id="wos-plan-hint"></html:div>
+          </html:div>
+          <html:div class="zmp-fg">
+            <html:label class="zmp-fl" data-l10n-id="pref-wos-database-label"></html:label>
+            <html:select class="zmp-fi" id="zotero-prefpane-__addonRef__-wos-database"
+              preference="extensions.zotero.zotero-agent.wos.database">
+              <html:option value="WOS">WOS — Core Collection</html:option>
+              <html:option value="WOK">WOK — All Databases</html:option>
+              <html:option value="MEDLINE">MEDLINE</html:option>
+              <html:option value="PPRN">PPRN — Preprint Citation Index</html:option>
+              <html:option value="BIOABS">BIOABS</html:option>
+              <html:option value="BCI">BCI</html:option>
+              <html:option value="BIOSIS">BIOSIS</html:option>
+              <html:option value="CCC">CCC</html:option>
+              <html:option value="DIIDW">DIIDW</html:option>
+              <html:option value="DRCI">DRCI</html:option>
+              <html:option value="ZOOREC">ZOOREC</html:option>
+            </html:select>
+          </html:div>
+        </html:div>
+
+        <html:div class="zmp-f2" style="margin-top:12px">
+          <html:div class="zmp-fg">
+            <html:label class="zmp-fl" data-l10n-id="pref-wos-max-records-label"></html:label>
+            <html:input type="number" class="zmp-fi" id="zotero-prefpane-__addonRef__-wos-max-records"
+              preference="extensions.zotero.zotero-agent.wos.maxRecords" min="1" max="1000" />
+            <html:div class="zmp-fh" data-l10n-id="pref-wos-max-records-hint"></html:div>
+          </html:div>
+          <html:div class="zmp-fg">
+            <html:label class="zmp-fl" data-l10n-id="pref-wos-timeout-label"></html:label>
+            <html:input type="number" class="zmp-fi" id="zotero-prefpane-__addonRef__-wos-timeout"
+              preference="extensions.zotero.zotero-agent.wos.timeoutSeconds" min="5" max="600" />
+          </html:div>
+        </html:div>
+
+        <html:div class="zmp-bg" style="margin-top:12px">
+          <html:button class="zmp-b zmp-bp" id="test-wos-button" data-l10n-id="pref-wos-test-button"></html:button>
+        </html:div>
+        <html:div id="wos-test-status" class="zmp-msg"></html:div>
+        <html:div class="zmp-fh" data-l10n-id="pref-wos-test-hint"></html:div>
       </html:div>
 
       <!-- ④ 语义搜索 -->
