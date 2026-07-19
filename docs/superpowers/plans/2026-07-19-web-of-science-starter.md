@@ -70,11 +70,11 @@ Files:
 
 Steps:
 
-- [ ] 先增加工具显隐 selfTest 场景。
-- [ ] 注册 `search_web_of_science` schema 和调用分支，限制输入枚举及 1–1000。
-- [ ] 描述中标明外部请求、分页成本、plan 限制和 `import_by_identifier` 后续工作流。
-- [ ] 若现有工具定义支持 annotations，标记 read-only、idempotent、open-world；不为此重构协议层。
-- [ ] 运行单测与类型检查并提交。
+- [x] 先增加工具显隐 selfTest 场景。
+- [x] 注册 `search_web_of_science` schema 和调用分支，限制输入枚举及 1–1000。
+- [x] 描述中标明外部请求、分页成本、plan 限制和 `import_by_identifier` 后续工作流。
+- [x] 现有工具定义可接受 annotations；已标记 read-only、non-destructive、idempotent、open-world。
+- [x] 运行单测与类型检查并提交。
 
 ### Task 3：偏好面板与连接测试
 
@@ -124,6 +124,7 @@ Steps:
 | 2026-07-19 | Baseline Passed | `npm run test:unit` 91/91；`npm run build` Passed |
 | 2026-07-19 | Task 0 in progress | 官方未公开 plan/quota 自动探测；改为 plan 下拉框与本地保护 |
 | 2026-07-19 | Task 1 Passed | TDD red 已确认；WoS service 场景 9 个，总计 100/100；build Passed |
+| 2026-07-19 | Task 2 code Passed | MCP schema/handler/filter 与 selfTest 场景已加入；100/100；build Passed；selfTest 待部署执行 |
 
 ## Verification
 

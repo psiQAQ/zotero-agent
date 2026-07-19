@@ -245,6 +245,25 @@ registerSuite("protocol", async (t) => {
     t.assertTrue(!names.includes("delete_collection"), "delete_collection must be hidden");
   });
 
+  await t.scenario("search_web_of_science follows its enabled preference", async () => {
+    const key = PREF + "wos.enabled";
+    const original = Zotero.Prefs.get(key, true);
+    try {
+      Zotero.Prefs.set(key, false, true);
+      const hidden = await mcpPost(rpc("tools/list"));
+      const hiddenNames = (hidden.json?.result?.tools ?? []).map((x: any) => x.name);
+      t.assertTrue(!hiddenNames.includes("search_web_of_science"), "WoS tool must be hidden when disabled");
+
+      Zotero.Prefs.set(key, true, true);
+      const visible = await mcpPost(rpc("tools/list"));
+      const visibleNames = (visible.json?.result?.tools ?? []).map((x: any) => x.name);
+      t.assertTrue(visibleNames.includes("search_web_of_science"), "WoS tool must be visible when enabled");
+    } finally {
+      if (original === undefined) (Zotero.Prefs as any).clear(key, true);
+      else Zotero.Prefs.set(key, original, true);
+    }
+  });
+
   await t.scenario("run_javascript times out honestly", async () => {
     const evalOn = Zotero.Prefs.get(PREF + "eval.enabled", true) === true;
     if (!evalOn) t.skip("eval disabled");

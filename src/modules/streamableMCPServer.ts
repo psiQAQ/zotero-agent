@@ -37,6 +37,7 @@ import { titleSimilarity, MATCH_THRESHOLD } from './titleSimilarity';
 import { cslToZoteroFields, computeEnrichPatch, reconstructAbstract, shouldReplaceCreators, FILL_MISSING_FIELDS } from './metadataMerge';
 import { isPreprintCandidate, extractArxivId, findPublishedVersion, classifyHandleResponse } from './preprintService';
 import { detectCompanion, JASMINUM_ADDON_ID, jasminumPlanScrape, jasminumFetchMetadata, LINTER_ADDON_ID, LINT_STANDARD_RULE_IDS, LINT_TOOL_RULE_IDS, validateLintRules, enumerateLinterRules, formatMetadataLint } from './companionBridge';
+import { searchWebOfScience } from './wosService';
 
 export interface MCPRequest {
   jsonrpc: '2.0';
@@ -1129,6 +1130,47 @@ export class StreamableMCPServer {
         },
       },
       {
+        name: 'search_web_of_science',
+        description: 'Search Clarivate Web of Science Starter API with a WoS advanced query. Read-only and sends the query to Clarivate using the user-configured API Key. Each page contains up to 50 records and consumes one request; plan-aware rate, daily, preference, and per-call caps apply. Returns normalized bibliographic records whose DOI, PMID, or ISBN can be passed to import_by_identifier.',
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: true,
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Web of Science advanced query, for example TS=("graph neural network") AND PY=(2020-2026).',
+            },
+            database: {
+              type: 'string',
+              enum: ['WOS', 'BIOABS', 'BCI', 'BIOSIS', 'CCC', 'DIIDW', 'DRCI', 'MEDLINE', 'ZOOREC', 'PPRN', 'WOK'],
+              description: 'Web of Science database; defaults to the configured database.',
+            },
+            maxResults: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 1000,
+              description: 'Maximum records requested (default 50), additionally capped by the preference and selected API plan.',
+            },
+            sort: {
+              type: 'string',
+              enum: ['relevance', 'publication_date_desc', 'times_cited_desc'],
+              description: 'Result ordering; defaults to relevance. Free Trial does not return times-cited values.',
+            },
+            detail: {
+              type: 'string',
+              enum: ['full', 'short'],
+              description: 'Starter API response detail; defaults to full.',
+            },
+          },
+          required: ['query'],
+        },
+      },
+      {
         name: 'import_by_identifier',
         description: 'Import an item by DOI / arXiv ID / ISBN / PMID using Zotero\'s own translation engine. Idempotent by default (if_exists=skip searches the library first). Set fetch_pdf=true to also run Zotero\'s "Find Available PDF" (open-access resolver). Requires write.enabled. Example: {"identifier": "10.1145/3025453.3025599", "collectionKeys": "ABCD1234", "fetch_pdf": true}',
         inputSchema: {
@@ -1389,6 +1431,11 @@ export class StreamableMCPServer {
     const evalToolNames = new Set(['run_javascript', 'reload_plugin', 'install_plugin_from_url']);
     if (evalEnabled !== true) {
       finalTools = finalTools.filter((t: any) => !evalToolNames.has(t.name));
+    }
+
+    const wosEnabled = Zotero.Prefs.get('extensions.zotero.zotero-agent.wos.enabled', true);
+    if (wosEnabled !== true) {
+      finalTools = finalTools.filter((t: any) => t.name !== 'search_web_of_science');
     }
 
     return this.createResponse(request.id ?? null, { tools: finalTools });
@@ -1668,6 +1715,23 @@ export class StreamableMCPServer {
             throw new Error('url is required');
           }
           result = await installPluginFromUrl(args.url, args?.self_upgrade !== false);
+          break;
+        }
+
+        case 'search_web_of_science': {
+          if (Zotero.Prefs.get('extensions.zotero.zotero-agent.wos.enabled', true) !== true) {
+            throw new Error('Web of Science is disabled. Enable it in Zotero Agent preferences.');
+          }
+          if (!args?.query || typeof args.query !== 'string') {
+            throw new Error('query is required');
+          }
+          result = await searchWebOfScience({
+            query: args.query,
+            database: args.database,
+            maxResults: args.maxResults,
+            sort: args.sort,
+            detail: args.detail,
+          });
           break;
         }
 
