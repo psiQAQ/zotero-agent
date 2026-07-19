@@ -44,8 +44,26 @@ Do not select `Confidential` merely because the API Key field uses a password-st
 
 Starter API uses `X-ApiKey`, not OAuth Client Credentials. The Portal's Client Type classifies the application's execution environment; it does not change the plugin's request header or require an OAuth `client secret` in Zotero. Official references: [Clarivate Client Types](https://developer.clarivate.com/help/client_types) and [Accessing using an API Key](https://developer.clarivate.com/help/api-access).
 
-1. Open the [Clarivate Developer Portal](https://developer.clarivate.com/) and create or sign in to an account. Existing Clarivate product credentials may already work.
-2. Register an application in the Portal, select `Public: Native/Mobile Application` as its Client Type, **leave OAuth2.0 Flows unchecked**, and describe its purpose. Register a distinct application for your Zotero integration; do not use another person's or a publicly shared Key.
+### Recommended application fields
+
+Application page: [Register and View Your Applications](https://developer.clarivate.com/applications). After signing in, register a new application with these values:
+
+| Field | Recommended value | Notes |
+| --- | --- | --- |
+| Application ID | `zotero-agent-<your-unique-identifier>`; the repository maintainer can use `zotero-agent-psiqaq` | The ID must be lowercase and unique across the Portal. The current form accepts `a-z`, `0-9`, `-`, and `_`; prefer hyphens and append your username or digits if the ID is taken. It cannot be changed after creation |
+| Application Name | `Zotero Agent Web of Science Integration` | Human-readable only; it does not affect API calls |
+| Application Description | Use the English template below | An accurate use case, request model, and project URL can help approval. Never include an API Key or other credential |
+
+Copy and adjust this description to match the actual use case:
+
+```text
+Open-source Zotero desktop integration for personal literature discovery using the Web of Science Starter API. It performs user-initiated, read-only literature searches and returns bibliographic metadata through a local MCP server. Each user provides their own API key. Requests are rate-limited according to the selected plan; the application does not share credentials, perform background harvesting, or redistribute Web of Science data. Source code: https://github.com/psiQAQ/zotero-agent
+```
+
+Keep `personal literature discovery` only when it is accurate. An institutional applicant should replace it with the specific, truthful internal use case.
+
+1. Open [Clarivate Developer Portal Applications](https://developer.clarivate.com/applications) and create or sign in to an account. Existing Clarivate product credentials may already work.
+2. Register an application using the table above, select `Public: Native/Mobile Application` as its Client Type, and **leave OAuth2.0 Flows unchecked**. Register a distinct application for your Zotero integration; do not use another person's or a publicly shared Key.
 3. Open the [Web of Science Starter API](https://developer.clarivate.com/apis/wos-starter), choose an eligible plan, and subscribe the application.
 4. Wait for credentials or administrative approval. Some credentials may be issued quickly; other requests can take several days.
 5. In Zotero, open `Settings → Zotero Agent → Web of Science`, select the exact plan, enter the Key in the password field, and click **Test connection**.

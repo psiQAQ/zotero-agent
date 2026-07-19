@@ -44,8 +44,26 @@
 
 Starter API 使用 `X-ApiKey`，不是 OAuth Client Credentials。Portal 的 Client Type 是 application 的客户端环境分类；它不会改变本插件的请求头，也不会要求把 OAuth `client secret` 填入 Zotero。官方说明：[Clarivate Client Types](https://developer.clarivate.com/help/client_types)、[Accessing using an API Key](https://developer.clarivate.com/help/api-access)。
 
-1. 打开 [Clarivate Developer Portal](https://developer.clarivate.com/) 并注册或登录账号。已有 Clarivate 产品账号时可能可以直接使用。
-2. 在 Portal 注册一个 application，Client Type 选择 `Public: Native/Mobile Application`，**不要勾选 OAuth2.0 Flows**，并填写该应用的用途。本插件使用时应为自己的 Zotero 集成注册独立 application，不要复用他人或公开共享的 Key。
+### Application 字段推荐写法
+
+申请入口：[Register and View Your Applications](https://developer.clarivate.com/applications)。登录后注册新 application，推荐填写：
+
+| 字段 | 推荐值 | 说明 |
+| --- | --- | --- |
+| Application ID | `zotero-agent-<你的唯一标识>`；本仓库维护者可用 `zotero-agent-psiqaq` | ID 必须全小写且全 Portal 唯一；当前表单允许 `a-z`、`0-9`、`-`、`_`。优先使用连字符；若已占用，在末尾增加自己的用户名或数字。创建后不能修改 |
+| Application Name | `Zotero Agent Web of Science Integration` | 给人看的名称，不影响 API 调用 |
+| Application Description | 使用下方英文模板 | 如实说明用途、请求方式和项目地址有助于审批；不要写入 API Key 或其他凭据 |
+
+建议直接复制并按实际用途调整：
+
+```text
+Open-source Zotero desktop integration for personal literature discovery using the Web of Science Starter API. It performs user-initiated, read-only literature searches and returns bibliographic metadata through a local MCP server. Each user provides their own API key. Requests are rate-limited according to the selected plan; the application does not share credentials, perform background harvesting, or redistribute Web of Science data. Source code: https://github.com/psiQAQ/zotero-agent
+```
+
+只有在用途属实时才保留 `personal literature discovery`。机构申请应将其替换为具体、真实的内部使用场景。
+
+1. 打开 [Clarivate Developer Portal Applications](https://developer.clarivate.com/applications) 并注册或登录账号。已有 Clarivate 产品账号时可能可以直接使用。
+2. 按上表注册一个 application，Client Type 选择 `Public: Native/Mobile Application`，**不要勾选 OAuth2.0 Flows**。本插件使用时应为自己的 Zotero 集成注册独立 application，不要复用他人或公开共享的 Key。
 3. 打开 [Web of Science Starter API](https://developer.clarivate.com/apis/wos-starter)，为该 application 选择并订阅符合资格的 plan。
 4. 等待凭据发放或人工审批。部分 plan 可较快发放，其他 plan 可能需要数天。
 5. 在 Zotero 中打开 `Settings → Zotero Agent → Web of Science`，选择准确 plan，把 Key 写入 password 输入框，然后点击“测试连接”。
