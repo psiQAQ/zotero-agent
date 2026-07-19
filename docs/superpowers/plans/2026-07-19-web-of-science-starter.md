@@ -107,11 +107,11 @@ Steps:
 
 ### Task 5：完整验证、XPI 部署与真实 API
 
-- [ ] `npm run test:unit`
-- [ ] `npm run build`
-- [ ] `npm run lint:check`
-- [ ] `node scripts/deploy-live.mjs`
-- [ ] MCP 回连后验证 Add-on 版本、`tools/list` 与 `Zotero.ZoteroAgentSelfTest.run('protocol')`。
+- [x] `npm run test:unit`：100/100 Passed。
+- [x] `npm run build`：Passed。
+- [x] `npm run lint:check`：已执行；全仓 Prettier 基线含 86 个既有文件，命令在 ESLint 前失败。范围 ESLint 的报错也均位于本次未改的既有行；新增 `wosService.ts` 与 selfTest 修改无 ESLint 报错。
+- [x] `node scripts/deploy-live.mjs`：XPI 经 MCP 自升级安装，写入大小与磁盘回读一致。
+- [x] MCP 回连后验证 Add-on active、`tools/list` 与 `Zotero.ZoteroAgentSelfTest.run('protocol')`：29 passed、0 failed、3 skipped。
 - [ ] 等待用户把 API Key 填入 Zotero 面板并选择准确 plan；不得要求用户在聊天中提供 Key。
 - [ ] 用“测试连接”执行 1 条请求，再用 MCP 调用一次最多 1 条的真实查询。
 - [ ] 回读本地请求计数，确认 Key 不出现在日志/响应，更新双语指南的验证状态。
@@ -127,6 +127,7 @@ Steps:
 | 2026-07-19 | Task 2 code Passed | MCP schema/handler/filter 与 selfTest 场景已加入；100/100；build Passed；selfTest 待部署执行 |
 | 2026-07-19 | Task 3 code Passed | prefs、password Key、三档 plan、数据库、上限、超时及最小连接测试已实现；build 无 i10n warning |
 | 2026-07-19 | Task 4 in progress | `import_by_identifier` 通用路径足够，零代码修改；README/指南/CHANGELOG/AGENTS 已更新 |
+| 2026-07-19 | Task 5 waiting for Key | XPI 已经 MCP 部署；面板 DOM、工具调用错误路径、DOI/PMID/ISBN 运行时识别均通过；selfTest 29/0/3 |
 
 ## Verification
 
@@ -135,7 +136,9 @@ Steps:
 | Unit tests baseline | Passed | 91 tests |
 | Build baseline | Passed | Zotero plugin build + `tsc --noEmit` |
 | New unit tests | Passed | 9 个 WoS service 场景；总计 100 tests |
-| Lint | Not Run | 等待实现完成 |
-| XPI deployment | Not Run | 等待实现完成 |
-| Zotero selfTest | Not Run | 等待部署 |
-| Real Starter API | Blocked later | 仅在 UI 完成后等待用户配置 Key |
+| Lint | Failed (baseline) | 全仓 Prettier 在 86 个既有文件失败；范围 ESLint 仅报既有行 |
+| XPI deployment | Passed | MCP self-upgrade；273,873 bytes 回读一致 |
+| Zotero selfTest | Passed | protocol: 29 passed、0 failed、3 skipped |
+| Preferences UI | Passed | 运行态 DOM 回读所有 WoS 控件、类型、枚举与默认值 |
+| Identifier handoff | Passed | Zotero 运行时识别 DOI、PMID、ISBN；`import_by_identifier` 零修改 |
+| Real Starter API | Waiting for user | 面板已打开，等待用户配置自己的 Key 与准确 plan |

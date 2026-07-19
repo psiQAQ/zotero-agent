@@ -91,5 +91,7 @@ Prefer `identifiers.doi`, then PMID or ISBN, as input to `import_by_identifier`.
 | Design and implementation plan | Updated |
 | Service, MCP tool, and preferences UI | Implemented locally |
 | Unit tests and build | Passed (100/100; build Passed) |
-| XPI deployment and Zotero selfTest | Pending execution |
+| XPI deployment and Zotero selfTest | Passed (29 passed, 0 failed, 3 skipped) |
 | Live Starter API | Pending user Key configuration in the panel |
+
+Repository-wide `npm run lint:check` is currently blocked by an existing Prettier baseline affecting 86 files, including unrelated historical documents and source files. The feature-specific unit tests, TypeScript build, XPI deployment, runtime preferences DOM inspection, and protocol selfTest pass independently.
