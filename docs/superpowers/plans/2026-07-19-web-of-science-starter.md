@@ -40,6 +40,7 @@
 ### Task 0：设计、调查与用户文档
 
 - [x] 核对官方 Starter API plan、个人申请资格、Portal 获取 Key 步骤。
+- [x] 补充 Portal 三种 Client Type 的含义，并明确 Zotero 桌面插件选择 Public Native/Mobile。
 - [x] 核对官方文档与生成客户端是否提供 plan/剩余额度探测。
 - [x] 更新设计，加入 plan 下拉框、请求门、本地计数和 429 策略。
 - [x] 新建 `docs/web-of-science.md` 与 `docs/web-of-science-zh.md`。
@@ -128,6 +129,7 @@ Steps:
 | 2026-07-19 | Task 3 code Passed | prefs、password Key、三档 plan、数据库、上限、超时及最小连接测试已实现；build 无 i10n warning |
 | 2026-07-19 | Task 4 in progress | `import_by_identifier` 通用路径足够，零代码修改；README/指南/CHANGELOG/AGENTS 已更新 |
 | 2026-07-19 | Task 5 waiting for Key | XPI 已经 MCP 部署；面板 DOM、工具调用错误路径、DOI/PMID/ISBN 运行时识别均通过；selfTest 29/0/3 |
+| 2026-07-19 | Tutorial updated | 根据 Clarivate Client Types 官方说明，双语指南已明确选择 Public Native/Mobile，并解释 SPA 与 Confidential 的适用边界 |
 
 ## Verification
 
