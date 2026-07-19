@@ -55,11 +55,11 @@ Files:
 
 Steps:
 
-- [ ] 先写失败测试：plan policy、有效结果上限、UTC 计数、固定 URL/Header、分页、规范化、错误脱敏。
-- [ ] 实现最小纯函数和 `searchWebOfScience`，通过依赖注入使用 fake clock/sleep/request 测试限速，不在测试中真实等待。
-- [ ] 所有实际请求经模块级串行门；发请求前保守计数；达到本地日上限则拒绝。
-- [ ] 401/403/429/5xx/网络错误返回可操作且不泄密的信息；不自动重试。
-- [ ] 运行 `npm run test:unit` 并提交 service 阶段。
+- [x] 先写失败测试：plan policy、有效结果上限、UTC 计数、固定 URL/Header、分页、规范化、错误脱敏。
+- [x] 实现最小纯函数和 `searchWebOfScience`，通过依赖注入使用 fake clock/sleep/request 测试限速，不在测试中真实等待。
+- [x] 所有实际请求经模块级串行门；发请求前保守计数；达到本地日上限则拒绝。
+- [x] 401/403/429/5xx/网络错误返回可操作且不泄密的信息；不自动重试。
+- [x] 运行 `npm run test:unit` 并提交 service 阶段。
 
 ### Task 2：MCP 注册与 selfTest
 
@@ -123,6 +123,7 @@ Steps:
 | --- | --- | --- |
 | 2026-07-19 | Baseline Passed | `npm run test:unit` 91/91；`npm run build` Passed |
 | 2026-07-19 | Task 0 in progress | 官方未公开 plan/quota 自动探测；改为 plan 下拉框与本地保护 |
+| 2026-07-19 | Task 1 Passed | TDD red 已确认；WoS service 场景 9 个，总计 100/100；build Passed |
 
 ## Verification
 
@@ -130,7 +131,7 @@ Steps:
 | --- | --- | --- |
 | Unit tests baseline | Passed | 91 tests |
 | Build baseline | Passed | Zotero plugin build + `tsc --noEmit` |
-| New unit tests | Not Run | 等待 Task 1 |
+| New unit tests | Passed | 9 个 WoS service 场景；总计 100 tests |
 | Lint | Not Run | 等待实现完成 |
 | XPI deployment | Not Run | 等待实现完成 |
 | Zotero selfTest | Not Run | 等待部署 |
