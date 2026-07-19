@@ -2,9 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { DEFAULT_SCIHUB_SOURCES, parseSources, syncScihubResolvers } = require('../.tmp-test/scihubSources.js');
 
-test("DEFAULT_SCIHUB_SOURCES has 9 Sci-Hub + 2 Anna's Archive", () => {
-  assert.equal(DEFAULT_SCIHUB_SOURCES.length, 11);
-  assert.equal(DEFAULT_SCIHUB_SOURCES.filter((s) => s.url.includes("sci-hub")).length, 9);
+test("DEFAULT_SCIHUB_SOURCES has 13 Sci-Hub-compatible + 2 Anna's Archive sources", () => {
+  assert.equal(DEFAULT_SCIHUB_SOURCES.length, 15);
+  assert.equal(DEFAULT_SCIHUB_SOURCES.filter((s) => !s.url.includes("annas-archive")).length, 13);
   assert.equal(DEFAULT_SCIHUB_SOURCES.filter((s) => s.url.includes("annas-archive")).length, 2);
 });
 

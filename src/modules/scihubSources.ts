@@ -11,7 +11,7 @@ export interface ScihubSource {
   attribute?: string;
 }
 
-/** Aggregated mirrors from scipdf/sanfy008/scidb/pdferret (9 Sci-Hub + 2 Anna's Archive). */
+/** Default grey-source resolvers (13 Sci-Hub-compatible mirrors + 2 Anna's Archive). */
 // https://www.sci-hub.shop/
 // Deprecated:
 //   { url: "https://sci-hub.se/{doi}" },
