@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 本仓库 = **Zotero Agent（`zotero-agent`）**：从 `cookjohn/zotero-mcp` fork 二次开发后**独立**的发布仓库，插件目录即仓库根。完整变更史见 `CHANGELOG.md`（从上游 v1.5.0 起）。本文件是给未来会话的开发 / 发布上下文。
 
@@ -7,7 +7,7 @@
 ## 1. 架构
 
 - 本插件 = 一个**内嵌 MCP server 的 Zotero 插件**：插件在 Zotero 进程内起 HTTP server（手写 `nsIServerSocket`），端口 **23120**，只绑 `127.0.0.1`
-- 常规用法：插件装在**本地** Zotero，AI 客户端（Claude、Codex…）**本地直连** `http://127.0.0.1:23120/mcp`，用 `Authorization: Bearer <PSK>` 认证
+- 常规用法：插件装在**本地** Zotero，AI 客户端（Codex 等）**本地直连** `http://127.0.0.1:23120/mcp`，用 `Authorization: Bearer <PSK>` 认证
 - 读还可走 Zotero 官方只读 API（`127.0.0.1:23119`，仅服务浏览器 Connector 的读请求）
 - 关键区别：Zotero **进程内** `Zotero.Libraries.userLibraryID` = **1**，与 web 账号那个数字 library ID 不同；写 `run_javascript` 时用进程内的 `1`，调官方 API 路径 `/api/users/<library-id>/` 时才用 web library ID
 
@@ -100,7 +100,7 @@ for (const id of await Zotero.Items.getAllIDs(libID)) {
 - **多层防御**：只绑 loopback → PSK → `eval.enabled` 默认**关** → `write.enabled` 默认**关**
 - 写类工具 **dry-run 默认**，`confirm: true` 才执行；长尾操作用 `run_javascript`（需偏好页开 eval；长任务传 `timeout_ms`）
 - 工具集覆盖：search / get / collections / tag / note / metadata / item + `import_by_identifier` / `import_bibliography` / `find_missing_pdfs` / `find_related_papers` / `synthesize_annotations` / `find_duplicates` + `merge_duplicates` / `batch_update_tags` / `manage_pdf_resolvers` / `enrich_item_metadata` / `find_doi`（含 repair 模式）/ `upgrade_preprints` / `fetch_chinese_metadata` + `lint_metadata`（伴生插件桥接）等
-- 接入本机 Claude Code：`claude mcp add --transport http zotero http://127.0.0.1:23120/mcp --header "Authorization: Bearer <PSK>"`（PSK 从插件偏好页复制）
+- 接入本机 Codex：`codex mcp add --transport http zotero http://127.0.0.1:23120/mcp --header "Authorization: Bearer <PSK>"`（PSK 从插件偏好页复制）
 
 ## 8. 快速恢复对话（新会话跳这里）
 
