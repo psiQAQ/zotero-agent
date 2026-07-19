@@ -4,7 +4,7 @@
 
 **Zotero Agent** is a Zotero plugin that embeds an MCP (Model Context Protocol) server, turning your local Zotero library into a workspace an AI agent can fully operate — not just read.
 
-It exposes **46 tools** spanning library search & retrieval, metadata enrichment, identifier-based import (DOI / arXiv / ISBN / PMID), bulk bibliography import (BibTeX / RIS / CSL-JSON), preprint→published-version upgrade, DOI repair, grey-source PDF download (Sci-Hub / Anna's Archive), duplicate detection & merge, batch tagging, citation-graph expansion, annotation synthesis, and companion-plugin bridges (jasminum, Linter) — plus an escape-hatch `run_javascript` for arbitrary in-process automation beyond the built-in tools.
+It exposes **47 tools** spanning library search & retrieval, Web of Science Starter search, metadata enrichment, identifier-based import (DOI / arXiv / ISBN / PMID), bulk bibliography import (BibTeX / RIS / CSL-JSON), preprint→published-version upgrade, DOI repair, grey-source PDF download (Sci-Hub / Anna's Archive), duplicate detection & merge, batch tagging, citation-graph expansion, annotation synthesis, and companion-plugin bridges (jasminum, Linter) — plus an escape-hatch `run_javascript` for arbitrary in-process automation beyond the built-in tools.
 
 In practice, an AI assistant (Claude, Codex, …) talking to this server can search your library in natural language, clean up metadata and tags in bulk, import and de-duplicate papers, fetch missing PDFs, expand a topic through its citation graph, and synthesize your annotations — with dry-run-by-default safety on every write.
 
@@ -94,6 +94,12 @@ On top of Zotero's built-in open-access resolvers, the plugin can use Sci-Hub / 
 
 **Compliance.** Sci-Hub / Anna's Archive are grey-area sources. Legal compliance in your jurisdiction is your responsibility.
 
+## Web of Science Starter API
+
+The optional `search_web_of_science` tool runs Web of Science advanced queries through Clarivate's Starter API and returns normalized bibliographic records. It uses your own API Key, stays off by default, and applies plan-aware serial throttling, a conservative local daily counter, and per-call safety caps. Results containing a DOI, PMID, or ISBN can be handed to the existing `import_by_identifier` tool.
+
+People outside universities can apply for the Free Trial plan; institutional plans have separate subscription and approval requirements. See the [Web of Science Starter API guide](./docs/web-of-science.md) for eligibility, API Key setup, plan limits, security, and known quota-tracking limitations.
+
 ## Development Setup
 
 Clone the repository:
@@ -157,6 +163,7 @@ The table below is based on the actual tool definitions in `src/modules/streamab
 | `run_javascript` | Execute JavaScript inside the Zotero process for advanced automation. |
 | `reload_plugin` | Reload an installed Zotero plugin for development workflows. |
 | `install_plugin_from_url` | Install or upgrade a plugin XPI from a reachable URL or file path. |
+| `search_web_of_science` | Search Clarivate Web of Science Starter API with an advanced query; applies plan-aware rate, daily, and per-call safeguards and returns normalized records for identifier-based import. |
 | `import_by_identifier` | Import an item by DOI, arXiv ID, ISBN, or PMID. |
 | `import_bibliography` | Bulk-import BibTeX / RIS / CSL-JSON (auto-detected); idempotent dedup by DOI / title similarity; dry-run plan by default. |
 | `find_missing_pdfs` | Report items without PDFs or fetch open-access PDFs for them. |
@@ -190,7 +197,7 @@ Forked from [cookjohn/zotero-mcp](https://github.com/cookjohn/zotero-mcp) — a 
 | --- | --- | --- |
 | Auth | loopback only | **PSK Bearer** auth + `Origin` validation (DNS-rebind defense) |
 | Eval | none | **`run_javascript`** privileged eval tool (timeout + 100 KB cap) |
-| Tools | 27 | **46** — +19 tools (identifier & bulk-bibliography import, missing-PDF audit, citation graph, dedup, batch tags, metadata enrich, DOI reverse-lookup & repair, preprint upgrade, grey-source download, companion-plugin bridges, …) |
+| Tools | 27 | **47** — +20 tools (Web of Science search, identifier & bulk-bibliography import, missing-PDF audit, citation graph, dedup, batch tags, metadata enrich, DOI reverse-lookup & repair, preprint upgrade, grey-source download, companion-plugin bridges, …) |
 | Search | keyword | + RRF **hybrid** semantic search, 0-result **fallback ladder** |
 | Testing | none | 31-scenario in-process **selfTest** + node unit tests (91 cases) |
 | Deploy | manual | one-shot **`deploy-live`** (base64 ship + self-upgrade) + `reload_plugin` / `install_plugin_from_url` |

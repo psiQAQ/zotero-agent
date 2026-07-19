@@ -89,8 +89,7 @@ Prefer `identifiers.doi`, then PMID or ISBN, as input to `import_by_identifier`.
 | --- | --- |
 | Official eligibility and plan research | Complete |
 | Design and implementation plan | Updated |
-| Service, MCP tool, and preferences UI | In progress |
-| Baseline unit tests and build | Passed (91/91; build Passed) |
-| XPI deployment and Zotero selfTest | Pending implementation |
+| Service, MCP tool, and preferences UI | Implemented locally |
+| Unit tests and build | Passed (100/100; build Passed) |
+| XPI deployment and Zotero selfTest | Pending execution |
 | Live Starter API | Pending user Key configuration in the panel |
-

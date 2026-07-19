@@ -43,7 +43,7 @@
 - [x] 核对官方文档与生成客户端是否提供 plan/剩余额度探测。
 - [x] 更新设计，加入 plan 下拉框、请求门、本地计数和 429 策略。
 - [x] 新建 `docs/web-of-science.md` 与 `docs/web-of-science-zh.md`。
-- [ ] 在 `README.md`、`README-zh.md` 增加对应指南入口和新工具简介。
+- [x] 在 `README.md`、`README-zh.md` 增加对应指南入口和新工具简介。
 
 ### Task 1：WoS service（TDD）
 
@@ -98,12 +98,12 @@ Steps:
 
 ### Task 4：导入兼容性和发布文档
 
-- [ ] 用 WoS 规范化结果样本验证 DOI、PMID、ISBN 可交给现有 `import_by_identifier`。
-- [ ] 无通用失败证据则不改 `import_by_identifier`；有证据则先补通用回归测试再修。
-- [ ] 更新中英文 README 的工具数、功能简介和指南链接。
-- [ ] 更新双语指南“开发状态”与实际 UI/能力。
-- [ ] 更新 `CHANGELOG.md` 和 `AGENTS.md` 的工具数/开发循环信息。
-- [ ] 提交文档阶段。
+- [x] 源码验证 WoS 规范化 DOI、PMID、ISBN 可交给现有 `import_by_identifier`；部署后补运行时样本证据。
+- [x] 无通用失败证据，因此不改 `import_by_identifier`。
+- [x] 更新中英文 README 的工具数、功能简介和指南链接。
+- [x] 更新双语指南“开发状态”与实际 UI/能力。
+- [x] 更新 `CHANGELOG.md` 和 `AGENTS.md` 的工具数/开发循环信息。
+- [x] 提交文档阶段。
 
 ### Task 5：完整验证、XPI 部署与真实 API
 
@@ -126,6 +126,7 @@ Steps:
 | 2026-07-19 | Task 1 Passed | TDD red 已确认；WoS service 场景 9 个，总计 100/100；build Passed |
 | 2026-07-19 | Task 2 code Passed | MCP schema/handler/filter 与 selfTest 场景已加入；100/100；build Passed；selfTest 待部署执行 |
 | 2026-07-19 | Task 3 code Passed | prefs、password Key、三档 plan、数据库、上限、超时及最小连接测试已实现；build 无 i10n warning |
+| 2026-07-19 | Task 4 in progress | `import_by_identifier` 通用路径足够，零代码修改；README/指南/CHANGELOG/AGENTS 已更新 |
 
 ## Verification
 

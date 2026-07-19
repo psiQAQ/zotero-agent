@@ -29,7 +29,7 @@
 ### 测试
 
 - **本地单测**：`npm run test:unit` —— `test/*.test.cjs` 纯函数单测（node 直跑，无框架，runner `scripts/unit-test.mjs`），覆盖 auth / eval / HTTP 字节读取 / MCP 协议 / 元数据合并 / PDF 识别与解析器 / 标题相似度 / hybrid search 等模块
-- **部署后全栈回归**：`src/modules/selfTest.ts`，startup 时挂载为 `Zotero.ZoteroAgentSelfTest`。约 31 场景：协议层（initialize 版本协商、401/403、-32601/-32602、`isError` 语义)+ 工具层（import 幂等、批量导入 dry-run、preprint 升级、DOI repair、伴生插件桥接、写类工具 dry-run 默认、搜索降级级联、CJK mojibake 回归、pdf resolvers 往返等）。版本更新部署后跑：`run_javascript` 里 `return await Zotero.ZoteroAgentSelfTest.run('protocol')`；`.list()` 列可用套件
+- **部署后全栈回归**：`src/modules/selfTest.ts`，startup 时挂载为 `Zotero.ZoteroAgentSelfTest`。约 32 场景：协议层（initialize 版本协商、401/403、-32601/-32602、`isError` 语义)+ 工具层（import 幂等、WoS 工具显隐、批量导入 dry-run、preprint 升级、DOI repair、伴生插件桥接、写类工具 dry-run 默认、搜索降级级联、CJK mojibake 回归、pdf resolvers 往返等）。版本更新部署后跑：`run_javascript` 里 `return await Zotero.ZoteroAgentSelfTest.run('protocol')`；`.list()` 列可用套件
 
 ## 4. 发布流程（版本控制 + 云端 CI + update.json）
 
@@ -94,12 +94,12 @@ for (const id of await Zotero.Items.getAllIDs(libID)) {
 - 中文 tag / body 的 mojibake（-32700）**已修**（读取层字节收集 + 单次解码）
 - `/mcp/status` 的 version 字段是历史硬编码，查真实版本用 `AddonManager`
 
-## 7. MCP 工具与安全（当前 v2.1.0，46 工具）
+## 7. MCP 工具与安全（当前开发分支，47 工具）
 
 - 端口 **23120**，只绑 `127.0.0.1`；POST /mcp 校验 `Authorization: Bearer <PSK>`，并校验 Origin（DNS 重绑定防御）
 - **多层防御**：只绑 loopback → PSK → `eval.enabled` 默认**关** → `write.enabled` 默认**关**
 - 写类工具 **dry-run 默认**，`confirm: true` 才执行；长尾操作用 `run_javascript`（需偏好页开 eval；长任务传 `timeout_ms`）
-- 工具集覆盖：search / get / collections / tag / note / metadata / item + `import_by_identifier` / `import_bibliography` / `find_missing_pdfs` / `find_related_papers` / `synthesize_annotations` / `find_duplicates` + `merge_duplicates` / `batch_update_tags` / `manage_pdf_resolvers` / `enrich_item_metadata` / `find_doi`（含 repair 模式）/ `upgrade_preprints` / `fetch_chinese_metadata` + `lint_metadata`（伴生插件桥接）等
+- 工具集覆盖：search / get / collections / tag / note / metadata / item + `search_web_of_science`（用户 Key、plan 感知限速与本地额度保护）/ `import_by_identifier` / `import_bibliography` / `find_missing_pdfs` / `find_related_papers` / `synthesize_annotations` / `find_duplicates` + `merge_duplicates` / `batch_update_tags` / `manage_pdf_resolvers` / `enrich_item_metadata` / `find_doi`（含 repair 模式）/ `upgrade_preprints` / `fetch_chinese_metadata` + `lint_metadata`（伴生插件桥接）等
 - 接入本机 Codex：`codex mcp add --transport http zotero http://127.0.0.1:23120/mcp --header "Authorization: Bearer <PSK>"`（PSK 从插件偏好页复制）
 
 ## 8. 快速恢复对话（新会话跳这里）

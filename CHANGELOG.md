@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 
 ## [Unreleased]
 
+### Added
+- **`search_web_of_science`**: read-only Web of Science Starter API advanced search with normalized bibliographic output, fixed Clarivate HTTPS endpoint, API Key authentication, stable 50-record pagination, and direct DOI/PMID/ISBN handoff to `import_by_identifier`
+- Web of Science preferences for API Key, plan, database, per-call record cap, timeout, and a one-record connection test; the Key uses a password field and is never returned by MCP
+- Plan-aware request protection: serialized starts, conservative 1.1s/220ms spacing, local UTC daily counters for the official 50/5,000/20,000-request plans, per-call safety caps, and no hidden retries after HTTP 429
+- English and Chinese Web of Science guides covering individual eligibility, API Key acquisition, plan capabilities, security, and quota-tracking limitations
+
+### Changed
+- Tools: 46 → 47; selfTest scenarios: 31 → 32; unit tests: 91 → 100
+- `import_by_identifier` remains provider-neutral; WoS results reuse its existing DOI/PMID/ISBN path rather than adding a WoS-specific importer
+
 ## [2.1.0] - 2026-07-08
 
 ### Added (4 new tools, 42 → 46)
