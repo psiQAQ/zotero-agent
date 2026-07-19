@@ -40,7 +40,7 @@
 ### Task 0：设计、调查与用户文档
 
 - [x] 核对官方 Starter API plan、个人申请资格、Portal 获取 Key 步骤。
-- [x] 补充 Portal 三种 Client Type 的含义，并明确 Zotero 桌面插件选择 Public Native/Mobile。
+- [x] 补充 Portal 三种 Client Type 的含义，明确选择 Public Native/Mobile 且不勾选 redirect-based OAuth2.0 Flows。
 - [x] 核对官方文档与生成客户端是否提供 plan/剩余额度探测。
 - [x] 更新设计，加入 plan 下拉框、请求门、本地计数和 429 策略。
 - [x] 新建 `docs/web-of-science.md` 与 `docs/web-of-science-zh.md`。

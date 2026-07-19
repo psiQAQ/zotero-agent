@@ -38,12 +38,14 @@
 | `Public: Native/Mobile Application (Android/iOS app)` | 安装在用户 PC、手机或平板上的 desktop/native/mobile 应用 | 软件交付到用户设备，不能可靠保守共享 `client secret` | **是；选择这一项** |
 | `Confidential: Server side application, can keep secrets confidential` | 由开发者控制的后端、daemon 或 server-side web application | 所有携带 secret 的请求都在受控服务器发出，secret 从不下发到浏览器、插件或用户电脑 | 否；当前插件直接从用户本机请求 Clarivate |
 
+**`This application will use OAuth2.0 Flows (other than the Client Credentials flow, i.e. using redirects)` 不要勾选。** 该选项仅用于需要把用户重定向到 Authorization Server，再通过 callback/redirect URI 接收 authorization code 或 access token 的 OAuth2 应用。当前集成没有登录跳转、redirect URI、authorization code、PKCE、access token 或 refresh token，只用 `X-ApiKey` 直接请求 Starter API。
+
 不要因为 API Key 输入框使用 password 样式，就选择 `Confidential`。password 输入框只避免界面直接显示 Key，不能让安装在用户电脑上的程序成为能保守应用级 secret 的服务器端环境。只有以后改成“插件只调用开发者自建后端，由后端保存 Clarivate 凭据并代发全部请求”的架构时，后端 application 才应考虑 `Confidential`。
 
 Starter API 使用 `X-ApiKey`，不是 OAuth Client Credentials。Portal 的 Client Type 是 application 的客户端环境分类；它不会改变本插件的请求头，也不会要求把 OAuth `client secret` 填入 Zotero。官方说明：[Clarivate Client Types](https://developer.clarivate.com/help/client_types)、[Accessing using an API Key](https://developer.clarivate.com/help/api-access)。
 
 1. 打开 [Clarivate Developer Portal](https://developer.clarivate.com/) 并注册或登录账号。已有 Clarivate 产品账号时可能可以直接使用。
-2. 在 Portal 注册一个 application，Client Type 选择 `Public: Native/Mobile Application`，并填写该应用的用途。本插件使用时应为自己的 Zotero 集成注册独立 application，不要复用他人或公开共享的 Key。
+2. 在 Portal 注册一个 application，Client Type 选择 `Public: Native/Mobile Application`，**不要勾选 OAuth2.0 Flows**，并填写该应用的用途。本插件使用时应为自己的 Zotero 集成注册独立 application，不要复用他人或公开共享的 Key。
 3. 打开 [Web of Science Starter API](https://developer.clarivate.com/apis/wos-starter)，为该 application 选择并订阅符合资格的 plan。
 4. 等待凭据发放或人工审批。部分 plan 可较快发放，其他 plan 可能需要数天。
 5. 在 Zotero 中打开 `Settings → Zotero Agent → Web of Science`，选择准确 plan，把 Key 写入 password 输入框，然后点击“测试连接”。
