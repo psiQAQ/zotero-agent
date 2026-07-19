@@ -42,13 +42,13 @@
 
 工具名：`search_web_of_science`
 
-| 参数 | 类型 | 默认值 | 约束与作用 |
-| --- | --- | --- | --- |
-| `query` | `string` | 无 | 必填；WoS Starter 支持的高级检索表达式，例如 `TS=("graph neural network") AND PY=(2020-2026)` |
-| `database` | `string` | preference `WOS` | 官方数据库枚举：`WOS`、`BIOABS`、`BCI`、`BIOSIS`、`CCC`、`DIIDW`、`DRCI`、`MEDLINE`、`ZOOREC`、`PPRN`、`WOK` |
-| `maxResults` | `number` | `50` | 最少 1；不得超过 preference `wos.maxRecords`，默认硬上限 100 |
-| `sort` | `string` | `relevance` | `relevance` → `RS+D`，`publication_date_desc` → `PY+D`，`times_cited_desc` → `TC+D` |
-| `detail` | `string` | `full` | `full` 或 `short`；`full` 使用服务端默认，不发送多余参数 |
+| 参数         | 类型     | 默认值           | 约束与作用                                                                                                   |
+| ------------ | -------- | ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| `query`      | `string` | 无               | 必填；WoS Starter 支持的高级检索表达式，例如 `TS=("graph neural network") AND PY=(2020-2026)`                |
+| `database`   | `string` | preference `WOS` | 官方数据库枚举：`WOS`、`BIOABS`、`BCI`、`BIOSIS`、`CCC`、`DIIDW`、`DRCI`、`MEDLINE`、`ZOOREC`、`PPRN`、`WOK` |
+| `maxResults` | `number` | `50`             | 最少 1；不得超过 preference `wos.maxRecords`，默认硬上限 100                                                 |
+| `sort`       | `string` | `relevance`      | `relevance` → `RS+D`，`publication_date_desc` → `PY+D`，`times_cited_desc` → `TC+D`                          |
+| `detail`     | `string` | `full`           | `full` 或 `short`；`full` 使用服务端默认，不发送多余参数                                                     |
 
 工具描述必须明确：查询会发送到 Clarivate；每 50 条至多需要一个 API 请求；结果可把 DOI、PMID 或 ISBN 交给 `import_by_identifier`。
 
@@ -119,13 +119,13 @@ interface WosSearchResult {
 
 ## 偏好设置
 
-| Preference | 默认值 | UI | 说明 |
-| --- | --- | --- | --- |
-| `wos.enabled` | `false` | checkbox | 关闭时从 `tools/list` 隐藏工具 |
-| `wos.apiKey` | `""` | password | 用户在 Clarivate Developer Portal 申请的 Key |
-| `wos.database` | `"WOS"` | select | 默认数据库 |
-| `wos.maxRecords` | `100` | number，1–1000 | 单次调用硬上限，不代表用户额度 |
-| `wos.timeoutSeconds` | `30` | number，5–600 | 每个 HTTP 请求的超时 |
+| Preference           | 默认值  | UI             | 说明                                         |
+| -------------------- | ------- | -------------- | -------------------------------------------- |
+| `wos.enabled`        | `false` | checkbox       | 关闭时从 `tools/list` 隐藏工具               |
+| `wos.apiKey`         | `""`    | password       | 用户在 Clarivate Developer Portal 申请的 Key |
+| `wos.database`       | `"WOS"` | select         | 默认数据库                                   |
+| `wos.maxRecords`     | `100`   | number，1–1000 | 单次调用硬上限，不代表用户额度               |
+| `wos.timeoutSeconds` | `30`    | number，5–600  | 每个 HTTP 请求的超时                         |
 
 Base URL、认证 Header 名、API 版本、额度和订阅计划不开放配置。固定官方 HTTPS 域名可避免 Key 被发送到任意服务器。
 
@@ -157,18 +157,18 @@ MCP tools/call
 
 ## 错误与安全
 
-| 情况 | 对外行为 |
-| --- | --- |
-| 未填写 API Key | `Web of Science API Key is not configured` |
-| 空 `query` | `query is required` |
-| 不支持的数据库或排序值 | 输入校验错误，列出允许值 |
-| HTTP 400 | `Web of Science rejected the query` |
-| HTTP 401 | `Web of Science API Key is missing or invalid` |
-| HTTP 403 | `Web of Science subscription does not permit this request` |
-| HTTP 404 | `Web of Science resource was not found` |
-| HTTP 429 | `Web of Science rate limit or request quota was exceeded` |
-| HTTP 5xx | `Web of Science service is temporarily unavailable` |
-| 网络/超时 | `Web of Science request failed or timed out` |
+| 情况                   | 对外行为                                                   |
+| ---------------------- | ---------------------------------------------------------- |
+| 未填写 API Key         | `Web of Science API Key is not configured`                 |
+| 空 `query`             | `query is required`                                        |
+| 不支持的数据库或排序值 | 输入校验错误，列出允许值                                   |
+| HTTP 400               | `Web of Science rejected the query`                        |
+| HTTP 401               | `Web of Science API Key is missing or invalid`             |
+| HTTP 403               | `Web of Science subscription does not permit this request` |
+| HTTP 404               | `Web of Science resource was not found`                    |
+| HTTP 429               | `Web of Science rate limit or request quota was exceeded`  |
+| HTTP 5xx               | `Web of Science service is temporarily unavailable`        |
+| 网络/超时              | `Web of Science request failed or timed out`               |
 
 错误映射只依据 HTTP status；不回传异常对象、请求 URL、Header 或 response dump。日志只允许记录工具名、页码、返回数量和错误类别，不能记录 Key。
 
