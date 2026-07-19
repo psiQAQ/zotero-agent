@@ -4,7 +4,7 @@ Forked from [cookjohn/zotero-mcp](https://github.com/cookjohn/zotero-mcp) (upstr
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versioning adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.2.0] - 2026-07-19
 
 ### Added
 - **`search_web_of_science`**: read-only Web of Science Starter API advanced search with normalized bibliographic output, fixed Clarivate HTTPS endpoint, API Key authentication, stable 50-record pagination, and direct DOI/PMID/ISBN handoff to `import_by_identifier`
@@ -15,6 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and ver
 ### Changed
 - Tools: 46 → 47; selfTest scenarios: 31 → 32; unit tests: 91 → 100
 - `import_by_identifier` remains provider-neutral; WoS results reuse its existing DOI/PMID/ISBN path rather than adding a WoS-specific importer
+- Refreshed the default grey-source resolver list to 13 Sci-Hub-compatible mirrors plus 2 Anna's Archive endpoints; removed the deprecated `sci-hub.se`, `sci-hub.st`, and `sci-hub.su` defaults
 
 ## [2.1.0] - 2026-07-08
 
